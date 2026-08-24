@@ -44,9 +44,7 @@ class AttendanceController extends Controller
                 "name" => $e->full_name,
                 "position" => $e->job_position,
                 "organization" => $e->unit->name ?? "-",
-                "signature_url" => asset(
-                    "storage/" . $e->pivot->signature_image_path,
-                ),
+                "signature_url" => "/storage/" . $e->pivot->signature_image_path,
                 "signed_at" => $e->pivot->created_at?->format("H:i"),
             ];
         });
@@ -149,7 +147,7 @@ class AttendanceController extends Controller
                 "name" => $employee->full_name,
                 "position" => $employee->job_position,
                 "organization" => $employee->unit->name ?? "-",
-                "signature_url" => asset("storage/" . $signaturePath),
+                "signature_url" => "/storage/" . $signaturePath,
                 "signed_at" => now()->format("H:i"),
             ],
         ]);

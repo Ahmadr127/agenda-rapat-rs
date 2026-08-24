@@ -80,6 +80,24 @@
                                     @error('event_date') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
 
+                                <div>
+                                    <label for="room_id" class="block text-sm font-semibold text-gray-700 mb-2">Ruangan</label>
+                                    <x-searchable-select
+                                        name="room_id"
+                                        search-url="{{ route('admin.rooms.search') }}"
+                                        :selected-id="old('room_id')"
+                                        placeholder="Cari ruangan..."
+                                        required
+                                    />
+                                    @error('room_id') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                                </div>
+
+                                <div>
+                                    <label for="event_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Mulai</label>
+                                    <input type="time" name="event_time" id="event_time" value="{{ old('event_time') }}" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" required>
+                                    @error('event_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                                </div>
+
                                 <template x-if="type === 'diklat' || type === 'pelatihan'">
                                     <div>
                                         <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>

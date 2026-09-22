@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use <Img:srcset></Img:srcset>lluminate\Models\User;
+use Illuminate\Models\User;
 
 class AdminAccount extends Seeder
 {

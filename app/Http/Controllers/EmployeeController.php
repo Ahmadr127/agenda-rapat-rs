@@ -31,6 +31,7 @@ class EmployeeController extends Controller
 
         $employees = Employee::query()
             ->orderBy('full_name')
+            ->when($request->boolean('without_account'), fn ($query) => $query->whereNull('user_id'))
             ->when($search !== '', function ($query) use ($search, $operator) {
                 $query->where(function ($query) use ($search, $operator) {
                     $query->where('full_name', $operator, "%{$search}%")

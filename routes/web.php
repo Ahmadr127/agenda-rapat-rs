@@ -95,6 +95,11 @@ Route::middleware("auth")
         // Account management — MANAGER IT only
         Route::middleware('manager_it')->group(function () {
             Route::get('users', [UserController::class, 'index'])->name('users.index');
+            Route::get('users/create', [UserController::class, 'create'])->name('users.create');
+            Route::post('users', [UserController::class, 'store'])->name('users.store');
+            Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+            Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
+            Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
             Route::get('users/{user}/change-password', [UserController::class, 'editPassword'])->name('users.change-password');
             Route::put('users/{user}/change-password', [UserController::class, 'updatePassword'])->name('users.update-password');
         });

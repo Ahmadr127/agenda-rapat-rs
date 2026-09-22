@@ -7,6 +7,8 @@ use App\Models\Employee;
 use App\Models\Room;
 use App\Models\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AttendanceTest extends TestCase
@@ -58,9 +60,9 @@ class AttendanceTest extends TestCase
             'signature_image_path' => 'signatures/existing.png',
         ]);
 
-        $response = $this->postJson("/absen/{$agenda->id}/sign", [
+        $response = $this->withHeaders(['Accept' => 'application/json'])->post("/absen/{$agenda->id}/sign", [
             'employee_id' => $employee->id,
-            'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==',
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 100),
         ]);
 
         $response->assertStatus(422);
@@ -69,28 +71,27 @@ class AttendanceTest extends TestCase
 
     public function test_allows_first_attendance(): void
     {
+        Storage::fake('public');
+
         [$agenda, $employee] = $this->createActiveAgendaWithEmployee();
 
-        $pngData = base64_encode(hex2bin(
-            '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489' .
-            '0000000a49444154789c626000000002000198e195290000000049454e44ae426082'
-        ));
-
-        $response = $this->postJson("/absen/{$agenda->id}/sign", [
+        $response = $this->withHeaders(['Accept' => 'application/json'])->post("/absen/{$agenda->id}/sign", [
             'employee_id' => $employee->id,
-            'signature' => 'data:image/png;base64,' . $pngData,
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 100),
         ]);
 
         $response->assertStatus(200);
         $response->assertJson(['message' => 'Absensi berhasil disimpan.']);
 
-        $this->assertNotNull(
-            $agenda->employees()->where('employee_id', $employee->id)->first()->pivot->signature_image_path
-        );
+        $path = $agenda->employees()->where('employee_id', $employee->id)->first()->pivot->signature_image_path;
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
     }
 
     public function test_allows_walk_in_attendance(): void
     {
+        Storage::fake('public');
+
         [$agenda] = $this->createActiveAgendaWithEmployee();
 
         $outsiderUnit = Unit::create(['name' => 'Other']);
@@ -104,14 +105,9 @@ class AttendanceTest extends TestCase
             'profession' => 'Other',
         ]);
 
-        $pngData = base64_encode(hex2bin(
-            '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489' .
-            '0000000a49444154789c626000000002000198e195290000000049454e44ae426082'
-        ));
-
-        $response = $this->postJson("/absen/{$agenda->id}/sign", [
+        $response = $this->withHeaders(['Accept' => 'application/json'])->post("/absen/{$agenda->id}/sign", [
             'employee_id' => $outsider->id,
-            'signature' => 'data:image/png;base64,' . $pngData,
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 100),
         ]);
 
         $response->assertStatus(200);

@@ -423,20 +423,20 @@
                     }
 
                     this.submitting = true;
-                    const base64 = this.signaturePad.toDataURL('image/png');
+                    const blob = await (await fetch(this.signaturePad.toDataURL('image/png'))).blob();
+
+                    const form = new FormData();
+                    form.append('employee_id', this.selectedEmployee.id);
+                    form.append('signature', blob, 'signature.png');
 
                     try {
                         const response = await fetch(`/absen/${this.agendaId}/sign`, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                                 'Accept': 'application/json',
                             },
-                            body: JSON.stringify({
-                                employee_id: this.selectedEmployee.id,
-                                signature: base64,
-                            }),
+                            body: form,
                         });
 
                         const data = await response.json();

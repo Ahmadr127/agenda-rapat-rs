@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 class SyncEmployeeUsers extends Command
 {
-    protected $signature   = 'employees:sync-users
+    protected $signature = 'employees:sync-users
                                 {--force : Also re-sync employees that already have a user_id}';
 
     protected $description = 'Create a User account for every Employee that does not have one yet.';
@@ -30,16 +30,17 @@ class SyncEmployeeUsers extends Command
 
         if ($employees->isEmpty()) {
             $this->info('All employees already have an account. Use --force to re-sync.');
+
             return self::SUCCESS;
         }
 
         $this->info("Processing {$employees->count()} employee(s)…");
 
-        $bar     = $this->output->createProgressBar($employees->count());
+        $bar = $this->output->createProgressBar($employees->count());
         $created = 0;
         $updated = 0;
 
-        DB::transaction(function () use ($employees, $bar, &$created, &$updated, $force) {
+        DB::transaction(function () use ($employees, $bar, &$created, &$updated) {
             foreach ($employees as $employee) {
                 $isNew = is_null($employee->user_id);
 
@@ -80,10 +81,10 @@ class SyncEmployeeUsers extends Command
     {
         $converted = NameConverter::convert($fullName, 'rsazra.co.id');
 
-        $name      = $converted['name'] ?: 'user';
+        $name = $converted['name'] ?: 'user';
         $baseEmail = $converted['email'];
-        $email     = $baseEmail;
-        $counter   = 1;
+        $email = $baseEmail;
+        $counter = 1;
 
         // Ensure email uniqueness among other users
         while (
@@ -92,21 +93,46 @@ class SyncEmployeeUsers extends Command
                 ->exists()
         ) {
             $local = substr($baseEmail, 0, strrpos($baseEmail, '@'));
-            $email = $local . $counter . '@rsazra.co.id';
+            $email = $local.$counter.'@rsazra.co.id';
             $counter++;
         }
 
         if ($userId) {
             $user = User::findOrFail($userId);
-            $user->update(['name' => $name, 'email' => $email]);
+            $user->update([
+                'name' => $name,
+                'email' => $email,
+                'username' => $user->username ?: $this->uniqueUsername($email, $userId),
+            ]);
 
             return $user;
         }
 
         return User::create([
-            'name'     => $name,
-            'email'    => $email,
+            'name' => $name,
+            'username' => $this->uniqueUsername($email, null),
+            'email' => $email,
             'password' => Hash::make('rsazra2026'),
         ]);
+    }
+
+    private function uniqueUsername(string $email, ?int $ignoreUserId): string
+    {
+        $base = strtolower(substr($email, 0, strpos($email, '@')));
+        $base = $base !== '' ? $base : 'user';
+
+        $username = $base;
+        $counter = 1;
+
+        while (
+            User::where('username', $username)
+                ->when($ignoreUserId, fn ($q) => $q->where('id', '!=', $ignoreUserId))
+                ->exists()
+        ) {
+            $username = $base.$counter;
+            $counter++;
+        }
+
+        return $username;
     }
 }

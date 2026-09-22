@@ -28,7 +28,7 @@ class AuthLoggingTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->post('/login', [
-            'email' => $user->email,
+            'login' => $user->username,
             'password' => 'password',
         ]);
 
@@ -78,7 +78,7 @@ class AuthLoggingTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->from('/login')->post('/login', [
-            'email' => $user->email,
+            'login' => $user->username,
             'password' => 'wrong-password',
         ]);
 
@@ -93,8 +93,8 @@ class AuthLoggingTest extends TestCase
             'guard' => 'web',
             'route_name' => null,
             'controller_action' => AuthenticatedSessionController::class.'@store',
-            'auth_identifier_field' => 'email',
-            'auth_identifier' => $user->email,
+            'auth_identifier_field' => 'username',
+            'auth_identifier' => $user->username,
             'user_id' => null,
         ], $contents);
     }
@@ -105,7 +105,7 @@ class AuthLoggingTest extends TestCase
 
         foreach (range(1, 6) as $attempt) {
             $response = $this->from('/login')->post('/login', [
-                'email' => $user->email,
+                'login' => $user->username,
                 'password' => 'wrong-password',
             ]);
 
@@ -119,8 +119,8 @@ class AuthLoggingTest extends TestCase
             'event' => 'auth.lockout',
             'route_name' => null,
             'controller_action' => AuthenticatedSessionController::class.'@store',
-            'auth_identifier_field' => 'email',
-            'auth_identifier' => $user->email,
+            'auth_identifier_field' => 'login',
+            'auth_identifier' => $user->username,
         ], $contents);
         $this->assertMatchesRegularExpression('/"throttle_key":"[^"]+"/', $contents);
         $this->assertMatchesRegularExpression('/"available_in_seconds":[0-9]+/', $contents);

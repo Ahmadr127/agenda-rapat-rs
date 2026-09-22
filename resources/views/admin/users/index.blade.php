@@ -23,7 +23,7 @@
         <x-search-filter
             :action="route('admin.users.index')"
             :q="$q"
-            placeholder="Cari nama atau email..."
+            placeholder="Cari nama, username, atau email..."
         />
     </div>
 
@@ -34,6 +34,7 @@
                 <thead class="bg-primary-700 text-white">
                     <tr class="border-b border-gray-100">
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Akun</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Username</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Pegawai</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
@@ -53,6 +54,9 @@
                                     <span class="text-sm font-semibold text-gray-800">{{ $user->name }}</span>
                                 </div>
                             </td>
+
+                            {{-- Username --}}
+                            <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $user->username }}</td>
 
                             {{-- Email --}}
                             <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $user->email }}</td>
@@ -95,7 +99,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
+                            <td colspan="7" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />

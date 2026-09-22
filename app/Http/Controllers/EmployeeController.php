@@ -61,7 +61,7 @@ class EmployeeController extends Controller
             ->when($q !== '', fn ($query) => $query->where(function ($query) use ($q, $operator) {
                 $query->where('full_name', $operator, "%{$q}%")
                     ->orWhere('nip', $operator, "%{$q}%")
-                    ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%"));
+                    ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%")->orWhere('username', $operator, "%{$q}%"));
             }))
             ->when($unitId, fn ($query) => $query->where('unit_id', $unitId))
             ->paginate(15)
@@ -174,15 +174,42 @@ class EmployeeController extends Controller
             $user->update([
                 'name' => $name,
                 'email' => $email,
+                'username' => $user->username ?: $this->uniqueUsername($email, $userId),
             ]);
 
             return $user;
         }
 
+        $username = $this->uniqueUsername($email, null);
+
         return User::create([
             'name' => $name,
+            'username' => $username,
             'email' => $email,
             'password' => Hash::make('rsazra2026'),
         ]);
+    }
+
+    /**
+     * Derive a unique lowercase username from an email address.
+     */
+    private function uniqueUsername(string $email, ?int $ignoreUserId): string
+    {
+        $base = strtolower(substr($email, 0, strpos($email, '@')));
+        $base = $base !== '' ? $base : 'user';
+
+        $username = $base;
+        $counter = 1;
+
+        while (
+            User::where('username', $username)
+                ->when($ignoreUserId, fn ($q) => $q->where('id', '!=', $ignoreUserId))
+                ->exists()
+        ) {
+            $username = $base.$counter;
+            $counter++;
+        }
+
+        return $username;
     }
 }

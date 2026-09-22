@@ -6,7 +6,7 @@
             </div>
             <div>
                 <h2 class="text-lg font-bold text-gray-900">Informasi Profil</h2>
-                <p class="text-sm text-gray-500">Perbarui nama dan alamat email akun Anda.</p>
+                <p class="text-sm text-gray-500">Perbarui nama, username, dan alamat email akun Anda.</p>
             </div>
         </div>
     </header>
@@ -33,6 +33,21 @@
                 class="block w-full px-4 py-3.5 rounded-2xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm placeholder-gray-400 transition duration-200 focus:bg-white focus:border-[#007774] focus:ring-2 focus:ring-[#007774]/20 focus:outline-none"
             >
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
+        </div>
+
+        <div>
+            <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+            <input
+                id="username"
+                name="username"
+                type="text"
+                value="{{ old('username', $user->username) }}"
+                required
+                autocomplete="username"
+                placeholder="username"
+                class="block w-full px-4 py-3.5 rounded-2xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm placeholder-gray-400 transition duration-200 focus:bg-white focus:border-[#007774] focus:ring-2 focus:ring-[#007774]/20 focus:outline-none"
+            >
+            <x-input-error class="mt-2" :messages="$errors->get('username')" />
         </div>
 
         <div>

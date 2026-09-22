@@ -110,21 +110,21 @@
             <form method="POST" action="{{ route('login') }}">
                 @csrf
 
-                {{-- Email --}}
+                {{-- Username atau Email --}}
                 <div class="mb-5">
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Alamat Email</label>
+                    <label for="login" class="block text-sm font-semibold text-gray-700 mb-2">Username atau Email</label>
                     <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value="{{ old('email') }}"
+                        id="login"
+                        type="text"
+                        name="login"
+                        value="{{ old('login') }}"
                         required
                         autofocus
                         autocomplete="username"
-                        placeholder="nama@email.com"
+                        placeholder="username atau nama@email.com"
                         class="block w-full px-4 py-3.5 rounded-2xl border border-gray-200 bg-gray-50/50 text-gray-900 text-sm placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"
                     >
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    <x-input-error :messages="$errors->get('login')" class="mt-2" />
                 </div>
 
                 {{-- Password --}}

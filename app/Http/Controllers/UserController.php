@@ -18,6 +18,7 @@ class UserController extends Controller
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($query) use ($q) {
                     $query->where('name', 'like', "%{$q}%")
+                        ->orWhere('username', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%");
                 });
             })

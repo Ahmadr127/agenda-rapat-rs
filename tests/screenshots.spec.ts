@@ -10,7 +10,7 @@ import { test, expect } from '@playwright/test';
  */
 
 const LOGIN = {
-  email: 'muhamad.miftahudin@rsazra.co.id',
+  login: 'muhamad.miftahudin',
   password: 'password123',
 };
 
@@ -28,7 +28,7 @@ test('capture README screenshots', async ({ page }) => {
   // ---------- 1. Login ----------
   await page.setViewportSize(DESKTOP);
   await page.goto('/login');
-  await page.fill('input[name="email"]', LOGIN.email);
+  await page.fill('input[name="login"]', LOGIN.login);
   await page.fill('input[name="password"]', LOGIN.password);
   await Promise.all([
     page.waitForURL('**/dashboard', { timeout: 15000 }),

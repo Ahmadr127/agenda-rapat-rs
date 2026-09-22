@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\LogRequestActivity;
+use App\Http\Middleware\RequireManagerIt;
 use App\Support\Logging\RequestLogContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,9 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         $middleware->prepend(LogRequestActivity::class);
         $middleware->alias([
-            'manager_it' => \App\Http\Middleware\RequireManagerIt::class,
+            'manager_it' => RequireManagerIt::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

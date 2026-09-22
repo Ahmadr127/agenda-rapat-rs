@@ -56,11 +56,12 @@ class EmployeeController extends Controller
         $unitId = $request->input('unit_id');
         $operator = $this->searchOperator();
 
-        $employees = Employee::with('unit')
+        $employees = Employee::with(['unit', 'user'])
             ->orderBy('full_name')
             ->when($q !== '', fn ($query) => $query->where(function ($query) use ($q, $operator) {
                 $query->where('full_name', $operator, "%{$q}%")
-                    ->orWhere('nip', $operator, "%{$q}%");
+                    ->orWhere('nip', $operator, "%{$q}%")
+                    ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%"));
             }))
             ->when($unitId, fn ($query) => $query->where('unit_id', $unitId))
             ->paginate(15)
@@ -68,23 +69,23 @@ class EmployeeController extends Controller
 
         $selectedUnit = $unitId ? Unit::find($unitId) : null;
 
-        return view("admin.employees.index", compact("employees", "q", "selectedUnit"));
+        return view('admin.employees.index', compact('employees', 'q', 'selectedUnit'));
     }
 
     public function create()
     {
-        return view("admin.employees.create");
+        return view('admin.employees.create');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            "nip" => "required|string|max:255|unique:employees,nip",
-            "full_name" => "required|string|max:255",
-            "unit_id" => "required|exists:units,id",
-            "job_position" => "required|string|max:255",
-            "structural_role" => "required|string|max:255",
-            "profession" => "required|string|max:255",
+            'nip' => 'required|string|max:255|unique:employees,nip',
+            'full_name' => 'required|string|max:255',
+            'unit_id' => 'required|exists:units,id',
+            'job_position' => 'required|string|max:255',
+            'structural_role' => 'required|string|max:255',
+            'profession' => 'required|string|max:255',
         ]);
 
         $user = $this->syncUser(null, $validated['full_name']);
@@ -93,27 +94,26 @@ class EmployeeController extends Controller
         Employee::create($validated);
 
         return redirect()
-            ->route("admin.employees.index")
-            ->with("success", "Pegawai berhasil ditambahkan.");
+            ->route('admin.employees.index')
+            ->with('success', 'Pegawai berhasil ditambahkan.');
     }
 
     public function edit(Employee $employee)
     {
         $employee->load('unit');
 
-        return view("admin.employees.edit", compact("employee"));
+        return view('admin.employees.edit', compact('employee'));
     }
 
     public function update(Request $request, Employee $employee)
     {
         $validated = $request->validate([
-            "nip" =>
-                "required|string|max:255|unique:employees,nip," . $employee->id,
-            "full_name" => "required|string|max:255",
-            "unit_id" => "required|exists:units,id",
-            "job_position" => "required|string|max:255",
-            "structural_role" => "required|string|max:255",
-            "profession" => "required|string|max:255",
+            'nip' => 'required|string|max:255|unique:employees,nip,'.$employee->id,
+            'full_name' => 'required|string|max:255',
+            'unit_id' => 'required|exists:units,id',
+            'job_position' => 'required|string|max:255',
+            'structural_role' => 'required|string|max:255',
+            'profession' => 'required|string|max:255',
         ]);
 
         $this->syncUser($employee->user_id, $validated['full_name']);
@@ -121,8 +121,8 @@ class EmployeeController extends Controller
         $employee->update($validated);
 
         return redirect()
-            ->route("admin.employees.index")
-            ->with("success", "Pegawai berhasil diperbarui.");
+            ->route('admin.employees.index')
+            ->with('success', 'Pegawai berhasil diperbarui.');
     }
 
     public function destroy(Employee $employee)
@@ -136,8 +136,8 @@ class EmployeeController extends Controller
         }
 
         return redirect()
-            ->route("admin.employees.index")
-            ->with("success", "Pegawai berhasil dihapus.");
+            ->route('admin.employees.index')
+            ->with('success', 'Pegawai berhasil dihapus.');
     }
 
     private function searchOperator(): string
@@ -153,10 +153,10 @@ class EmployeeController extends Controller
     {
         $converted = NameConverter::convert($fullName, 'rsazra.co.id');
 
-        $name      = $converted['name'] ?: 'user';
+        $name = $converted['name'] ?: 'user';
         $baseEmail = $converted['email'];
-        $email     = $baseEmail;
-        $counter   = 1;
+        $email = $baseEmail;
+        $counter = 1;
 
         // Make email unique if already taken by a different user
         while (
@@ -165,14 +165,14 @@ class EmployeeController extends Controller
                 ->exists()
         ) {
             $local = substr($baseEmail, 0, strrpos($baseEmail, '@'));
-            $email = $local . $counter . '@rsazra.co.id';
+            $email = $local.$counter.'@rsazra.co.id';
             $counter++;
         }
 
         if ($userId) {
             $user = User::findOrFail($userId);
             $user->update([
-                'name'  => $name,
+                'name' => $name,
                 'email' => $email,
             ]);
 
@@ -180,8 +180,8 @@ class EmployeeController extends Controller
         }
 
         return User::create([
-            'name'     => $name,
-            'email'    => $email,
+            'name' => $name,
+            'email' => $email,
             'password' => Hash::make('rsazra2026'),
         ]);
     }

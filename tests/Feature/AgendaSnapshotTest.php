@@ -354,4 +354,18 @@ class AgendaSnapshotTest extends TestCase
             ->assertJsonPath('items.0.name', 'Diklat')
             ->assertJsonPath('has_more', false);
     }
+
+    public function test_create_page_shows_rapat_option_for_non_sdm_unit(): void
+    {
+        $unit = Unit::factory()->create(['name' => 'Laboratorium']);
+        $user = User::factory()->create();
+        Employee::factory()->create(['user_id' => $user->id, 'unit_id' => $unit->id]);
+
+        $response = $this->actingAs($user)->get(route('admin.agendas.create'));
+
+        $response->assertOk();
+        $response->assertSee('value="rapat"', false);
+        $response->assertSee('value="diklat"', false);
+        $response->assertSee('value="pelatihan"', false);
+    }
 }

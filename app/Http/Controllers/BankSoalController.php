@@ -65,6 +65,57 @@ class BankSoalController extends Controller
         return view('admin.bank-soals.create');
     }
 
+    public function downloadTemplate()
+    {
+        $filename = 'template-bank-soal.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+
+            // BOM agar terbuka benar di Excel
+            fwrite($file, "\xEF\xBB\xBF");
+
+            fputcsv($file, [
+                'question_text',
+                'option_a',
+                'option_b',
+                'option_c',
+                'option_d',
+                'option_e',
+                'correct_option',
+            ]);
+
+            fputcsv($file, [
+                'Apa ibu kota Indonesia?',
+                'Jakarta',
+                'Bandung',
+                'Surabaya',
+                'Medan',
+                'Makassar',
+                'a',
+            ]);
+
+            fputcsv($file, [
+                'Warna bendera Indonesia?',
+                'Merah Putih',
+                'Biru Kuning',
+                'Hijau Hitam',
+                '',
+                '',
+                'a',
+            ]);
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

@@ -90,6 +90,10 @@ Route::middleware("auth")
             BankSoalController::class,
             "search",
         ])->name("bank-soals.search");
+        Route::get("bank-soals/template", [
+            BankSoalController::class,
+            "downloadTemplate",
+        ])->name("bank-soals.template");
         Route::resource("bank-soals", BankSoalController::class);
 
         // Account management — MANAGER IT only

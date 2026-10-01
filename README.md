@@ -182,3 +182,6 @@ npx playwright test # End-to-end browser tests
 **D-ASSA** — turning paper-based meetings and training into a measurable, auditable digital workflow.
 
 </div>
+
+php artisan users:prune-non-admin
+

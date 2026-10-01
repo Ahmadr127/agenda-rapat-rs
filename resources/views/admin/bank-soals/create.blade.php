@@ -151,15 +151,20 @@
                 </div>
                 <div class="p-8 space-y-5">
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
                         <label class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 transition-colors cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
                             Pilih File
                             <input type="file" accept=".csv,.xlsx,.xls" class="hidden" @change="handleFileUpload($event)">
                         </label>
+                        <a href="{{ route('admin.bank-soals.template') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-semibold border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5"/></svg>
+                            Download Template
+                        </a>
                         <span class="text-sm text-gray-500" x-text="importFileName || 'Belum ada file dipilih'"></span>
                         <svg x-show="importLoading" class="w-4 h-4 animate-spin text-primary" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
                     </div>
+                    <p class="text-xs text-gray-400">Belum punya file? Unduh <a href="{{ route('admin.bank-soals.template') }}" class="font-semibold text-emerald-600 hover:text-emerald-700 underline">template CSV</a> berisi kolom + 2 contoh soal, lalu isi dan upload kembali.</p>
 
                     @error('questions') <p class="text-rose-500 text-xs font-medium -mt-1">{{ $message }}</p> @enderror
 

@@ -629,4 +629,48 @@ class AgendaCrudTest extends TestCase
         $response->assertRedirect(route('admin.agendas.index'));
         $this->assertDatabaseCount('agenda_notes', 0);
     }
+
+    public function test_store_rejects_files_over_2mb(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
+            $this->validRapatData(),
+            ['letter_file' => UploadedFile::fake()->create('surat.pdf', 2049, 'application/pdf')]
+        ));
+
+        $response->assertSessionHasErrors('letter_file');
+        $this->assertDatabaseCount('agendas', 0);
+    }
+
+    public function test_store_error_message_for_oversized_file(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
+            $this->validRapatData(),
+            ['material_file' => UploadedFile::fake()->create('materi.pdf', 3000, 'application/pdf')]
+        ));
+
+        $response->assertSessionHasErrors(['material_file' => 'Materi terlalu besar. Maksimal 2 MB.']);
+    }
+
+    public function test_store_accepts_files_up_to_2mb(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
+            $this->validRapatData(),
+            [
+                'letter_file' => UploadedFile::fake()->create('surat.pdf', 1500, 'application/pdf'),
+                'material_file' => UploadedFile::fake()->create('materi.pdf', 2048, 'application/pdf'),
+            ]
+        ));
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $this->assertDatabaseCount('agendas', 1);
+    }
 }

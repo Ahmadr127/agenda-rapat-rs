@@ -39,7 +39,7 @@
                             </div>
                         </div>
                     @else
-                        {{-- Non-SDM units: show Diklat & Pelatihan only --}}
+                        {{-- Non-SDM units: show all three types --}}
                         <div class="pb-4 border-b border-gray-100">
                             <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.75 6.75A2.25 2.25 0 017 4.5h10a2.25 2.25 0 012.25 2.25v10A2.25 2.25 0 0117 19H7a2.25 2.25 0 01-2.25-2.25v-10z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9h7.5M8.25 12h7.5M8.25 15h4.5"/></svg>
@@ -48,7 +48,11 @@
 
                             <div class="flex gap-4">
                                 <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="type" value="diklat" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" required>
+                                    <input type="radio" name="type" value="rapat" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" required>
+                                    <span class="text-sm font-medium text-gray-700">Rapat</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="type" value="diklat" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
                                     <span class="text-sm font-medium text-gray-700">Diklat</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer">
@@ -218,8 +222,9 @@
                                         <a href="{{ Storage::url($agenda->letter_file_path) }}" class="text-xs mb-2 text-blue-500 hover:underline visited:text-purple-500">Lihat file saat ini</a>
                                     @endif
                                     </label>
-                                    <input type="file" name="letter_file" id="letter_file" accept=".pdf" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-                                    <p class="text-xs text-gray-400 mt-1">Format PDF, maksimal 500kb.</p>
+                                    <input type="file" name="letter_file" id="letter_file" accept=".pdf" onchange="validateAgendaFile(this, 'letter_file_error')" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                    <p class="text-xs text-gray-400 mt-1">Format PDF, maksimal 2MB.</p>
+                                    <p id="letter_file_error" class="hidden text-rose-500 text-xs font-medium mt-1.5"></p>
                                     @error('letter_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
 
@@ -230,11 +235,32 @@
                                             <a href="{{ Storage::url($agenda->material_file) }}" class="text-xs mb-2 text-blue-500 hover:underline">Lihat file saat ini</a>
                                         @endif
                                     </label>
-                                    <input type="file" name="material_file" id="material_file" accept=".pdf" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-                                    <p class="text-xs text-gray-400 mt-1">Format PDF, maksimal 10MB.</p>
+                                    <input type="file" name="material_file" id="material_file" accept=".pdf" onchange="validateAgendaFile(this, 'material_file_error')" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                    <p class="text-xs text-gray-400 mt-1">Format PDF, maksimal 2MB.</p>
+                                    <p id="material_file_error" class="hidden text-rose-500 text-xs font-medium mt-1.5"></p>
                                     @error('material_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
                             </div>
+                            <script>
+                                function validateAgendaFile(input, errorId) {
+                                    var MAX_BYTES = 2 * 1024 * 1024;
+                                    var err = document.getElementById(errorId);
+                                    var file = input.files && input.files[0];
+                                    if (!file) {
+                                        err.classList.add('hidden');
+                                        return;
+                                    }
+                                    if (file.size > MAX_BYTES) {
+                                        var mb = (file.size / 1048576).toFixed(2);
+                                        err.textContent = 'File terlalu besar (' + mb + ' MB). Maksimal 2 MB — pilih file yang lebih kecil.';
+                                        err.classList.remove('hidden');
+                                        input.value = '';
+                                    } else {
+                                        err.textContent = '';
+                                        err.classList.add('hidden');
+                                    }
+                                }
+                            </script>
                         </div>
 
                         <div class="flex items-center gap-3 pt-3">

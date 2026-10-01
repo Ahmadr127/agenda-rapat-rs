@@ -117,4 +117,17 @@ class AttendanceTest extends TestCase
             $agenda->employees()->where('employee_id', $outsider->id)->first()->pivot->signature_image_path
         );
     }
+
+    public function test_attendance_page_has_clickable_signature_preview(): void
+    {
+        [$agenda] = $this->createActiveAgendaWithEmployee();
+
+        $response = $this->get("/absen/{$agenda->id}");
+
+        $response->assertStatus(200);
+        // Tombol TTD dispatch event preview…
+        $response->assertSee('open-signature-preview', false);
+        // …dan modal reusable ikut ter-render.
+        $response->assertSee('previewUrl', false);
+    }
 }

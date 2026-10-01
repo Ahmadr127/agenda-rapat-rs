@@ -252,7 +252,12 @@
                                         <span class="text-[7px] md:text-[9px] font-medium text-gray-600" x-text="a.signed_at"></span>
                                     </td>
                                     <td class="px-1.5 py-1.5 text-center">
-                                        <img :src="a.signature_url" alt="TTD" class="h-7 w-auto mx-auto  bg-white object-contain">
+                                        <button type="button"
+                                            @click="$dispatch('open-signature-preview', { name: a.name, url: a.signature_url })"
+                                            class="cursor-zoom-in rounded-lg transition hover:ring-2 hover:ring-primary/40 active:scale-95"
+                                            :title="'Lihat tanda tangan ' + a.name">
+                                            <img :src="a.signature_url" :alt="'TTD ' + a.name" class="h-7 w-auto mx-auto bg-white object-contain pointer-events-none">
+                                        </button>
                                     </td>
                                 </tr>
                             </template>
@@ -340,6 +345,9 @@
             </svg>
             <span x-text="errorMessage"></span>
         </div>
+
+        {{-- Reusable modal preview tanda tangan --}}
+        <x-signature-preview-modal />
     </div>
 
     <script>

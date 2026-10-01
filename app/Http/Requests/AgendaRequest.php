@@ -37,8 +37,21 @@ class AgendaRequest extends FormRequest
                 "nullable|required_if:type,diklat|required_if:type,pelatihan|exists:bank_soals,id",
             "presenter_ids" => "nullable|array",
             "presenter_ids.*" => "nullable|distinct|exists:employees,id",
-            "letter_file" => "nullable|file|mimes:pdf|max:500",
-            "material_file" => "nullable|file|mimes:pdf|max:10240",
+            "letter_file" => "nullable|file|mimes:pdf|max:2048",
+            "material_file" => "nullable|file|mimes:pdf|max:2048",
+        ];
+    }
+
+    /**
+     * Pesan error validasi dalam Bahasa Indonesia.
+     */
+    public function messages(): array
+    {
+        return [
+            "letter_file.max" => "Surat undangan terlalu besar. Maksimal 2 MB.",
+            "material_file.max" => "Materi terlalu besar. Maksimal 2 MB.",
+            "letter_file.mimes" => "Surat undangan harus berformat PDF.",
+            "material_file.mimes" => "Materi harus berformat PDF.",
         ];
     }
 }

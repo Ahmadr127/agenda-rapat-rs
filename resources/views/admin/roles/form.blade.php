@@ -45,9 +45,6 @@
             groupIds(group) {
                 return group.items.map(p => String(p.id));
             },
-            groupSelected(group) {
-                return this.groupIds(group).filter(id => this.selected.includes(id));
-            },
             toggleAll() {
                 this.selected = this.allChecked ? [] : this.groups.flatMap(g => this.groupIds(g));
             },
@@ -58,17 +55,18 @@
                 const role = this.copyRoles.find(r => String(r.id) === String(this.copyFrom));
                 if (role) this.selected = [...role.permission_ids.map(String)];
             },
-            filteredItems(group) {
-                const q = this.search.toLowerCase().trim();
-                if (!q) return group.items;
-                return group.items.filter(p =>
-                    p.label.toLowerCase().includes(q) || p.key.toLowerCase().includes(q));
-            },
             get allIds() {
                 return this.groups.flatMap(g => this.groupIds(g));
             },
             get allChecked() {
                 return this.allIds.length > 0 && this.allIds.every(id => this.selected.includes(id));
+            },
+            get visibleItems() {
+                const q = this.search.toLowerCase().trim();
+                const all = this.groups.flatMap(g => g.items);
+                if (!q) return all;
+                return all.filter(p =>
+                    p.label.toLowerCase().includes(q) || p.key.toLowerCase().includes(q));
             },
             get unlockedMenus() {
                 const menus = new Set();
@@ -112,42 +110,36 @@
                 </div>
             </div>
 
-     
-            {{-- Daftar izin per grup --}}
-            <div class="space-y-4">
-                <template x-for="group in groups" :key="group.group">
-                    <div x-show="filteredItems(group).length > 0" class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-                        <div class="w-full px-8 py-5 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm font-bold text-gray-900 uppercase tracking-wider" x-text="group.group"></span>
-                                <span class="text-xs font-bold px-2.5 py-1 rounded-lg"
-                                    :class="groupSelected(group).length === groupIds(group).length && groupIds(group).length > 0 ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'"
-                                    x-text="groupSelected(group).length + '/' + groupIds(group).length"></span>
-                            </div>
-                        </div>
-                        <div class="px-8 pb-6 grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                            <template x-for="p in filteredItems(group)" :key="p.id">
-                                <label class="flex items-start gap-3 cursor-pointer rounded-2xl border px-4 py-3 transition-all duration-150"
-                                    :class="selected.includes(String(p.id)) ? 'border-primary bg-primary-50/50' : 'border-gray-100 hover:border-gray-200'">
-                                    <input type="checkbox" name="permission_ids[]" :value="p.id" x-model="selected"
-                                        class="mt-0.5 w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary">
-                                    <span>
-                                        <span class="block text-sm font-medium text-gray-800" x-text="p.label"></span>
-                                        <span class="block text-xs text-gray-400 font-mono" x-text="p.key"></span>
-                                    </span>
-                                </label>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-                @error('permission_ids') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+            {{-- Template & alat bantu --}}
+           
+
+            {{-- Daftar izin (flat, tanpa label grup) --}}
+            <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
+                <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Daftar Izin</h3>
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-lg bg-gray-100 text-gray-500"
+                        x-text="selected.length + '/' + allIds.length"></span>
+                </div>
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <template x-for="p in visibleItems" :key="p.id">
+                        <label class="flex items-start gap-3 cursor-pointer rounded-2xl border px-4 py-3 transition-all duration-150"
+                            :class="selected.includes(String(p.id)) ? 'border-primary bg-primary-50/50' : 'border-gray-100 hover:border-gray-200'">
+                            <input type="checkbox" name="permission_ids[]" :value="p.id" x-model="selected"
+                                class="mt-0.5 w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary">
+                            <span>
+                                <span class="block text-sm font-medium text-gray-800" x-text="p.label"></span>
+                                <span class="block text-xs text-gray-400 font-mono" x-text="p.key"></span>
+                            </span>
+                        </label>
+                    </template>
+                </div>
+                <p x-show="visibleItems.length === 0" class="px-8 pb-6 text-sm text-gray-400">Tidak ada izin yang cocok dengan pencarian.</p>
+                @error('permission_ids') <p class="text-rose-500 text-xs font-medium px-8 pb-6">{{ $message }}</p> @enderror
             </div>
         </div>
 
         {{-- ===== Preview live ===== --}}
-        <aside class="lg:sticky lg:top-24 space-y-4">
-            <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-               
+        
                 <div class="px-6 py-5 border-t border-gray-100 flex items-center gap-2">
                     <button type="submit" class="flex-1 px-6 py-3 rounded-2xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-700 hover:shadow-lg active:scale-[0.98] transition-all duration-200">
                         Simpan Role

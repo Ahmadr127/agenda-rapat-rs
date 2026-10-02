@@ -74,6 +74,25 @@ class UnitController extends Controller
         return view('admin.units.edit', compact('unit'));
     }
 
+    public function show(Request $request, Unit $unit)
+    {
+        $q = trim((string) $request->input('q'));
+        $operator = $this->searchOperator();
+
+        $employees = $unit->employees()
+            ->with(['user'])
+            ->orderBy('full_name')
+            ->when($q !== '', fn ($query) => $query->where(function ($query) use ($q, $operator) {
+                $query->where('full_name', $operator, "%{$q}%")
+                    ->orWhere('nip', $operator, "%{$q}%")
+                    ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%"));
+            }))
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.units.show', compact('unit', 'employees', 'q'));
+    }
+
     public function update(Request $request, Unit $unit)
     {
         $validated = $request->validate([

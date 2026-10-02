@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class UnitController extends Controller
 {
@@ -40,6 +41,8 @@ class UnitController extends Controller
 
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Unit::class);
+
         $q = trim((string) $request->input('q'));
         $operator = $this->searchOperator();
         $perPage = (int) $request->input('per_page', 10);
@@ -58,11 +61,15 @@ class UnitController extends Controller
 
     public function create()
     {
+        Gate::authorize('create', Unit::class);
+
         return view('admin.units.create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('create', Unit::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:units,name',
         ]);
@@ -75,11 +82,15 @@ class UnitController extends Controller
 
     public function edit(Unit $unit)
     {
+        Gate::authorize('update', $unit);
+
         return view('admin.units.edit', compact('unit'));
     }
 
     public function show(Request $request, Unit $unit)
     {
+        Gate::authorize('view', $unit);
+
         $q = trim((string) $request->input('q'));
         $operator = $this->searchOperator();
         $perPage = (int) $request->input('per_page', 10);
@@ -103,6 +114,8 @@ class UnitController extends Controller
 
     public function update(Request $request, Unit $unit)
     {
+        Gate::authorize('update', $unit);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:units,name,' . $unit->id,
         ]);
@@ -115,6 +128,8 @@ class UnitController extends Controller
 
     public function destroy(Unit $unit)
     {
+        Gate::authorize('delete', $unit);
+
         $unit->delete();
 
         return redirect()->route('admin.units.index')

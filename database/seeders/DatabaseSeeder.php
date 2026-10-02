@@ -38,6 +38,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            RbacSeeder::class,
             SimutuOrganisasiSeeder::class,
             BankSoalSeeder::class,
             AgendaTodaySeeder::class,

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BankSoal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class BankSoalController extends Controller
 {
@@ -45,6 +46,8 @@ class BankSoalController extends Controller
 
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', BankSoal::class);
+
         $q = trim((string) $request->input('q', ''));
         $operator = $this->searchOperator();
         $perPage = (int) $request->input('per_page', 10);
@@ -66,11 +69,15 @@ class BankSoalController extends Controller
 
     public function create()
     {
+        Gate::authorize('create', BankSoal::class);
+
         return view('admin.bank-soals.create');
     }
 
     public function downloadTemplate()
     {
+        Gate::authorize('viewAny', BankSoal::class);
+
         $filename = 'template-bank-soal.csv';
 
         $headers = [
@@ -122,6 +129,8 @@ class BankSoalController extends Controller
 
     public function store(Request $request)
     {
+        Gate::authorize('create', BankSoal::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -149,6 +158,8 @@ class BankSoalController extends Controller
 
     public function show(BankSoal $bankSoal)
     {
+        Gate::authorize('view', $bankSoal);
+
         $bankSoal->load('questions');
 
         return view('admin.bank-soals.show', compact('bankSoal'));
@@ -156,6 +167,8 @@ class BankSoalController extends Controller
 
     public function edit(BankSoal $bankSoal)
     {
+        Gate::authorize('update', $bankSoal);
+
         $bankSoal->load('questions');
 
         return view('admin.bank-soals.edit', compact('bankSoal'));
@@ -163,6 +176,8 @@ class BankSoalController extends Controller
 
     public function update(Request $request, BankSoal $bankSoal)
     {
+        Gate::authorize('update', $bankSoal);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -191,6 +206,8 @@ class BankSoalController extends Controller
 
     public function destroy(BankSoal $bankSoal)
     {
+        Gate::authorize('delete', $bankSoal);
+
         $bankSoal->delete();
 
         return redirect()

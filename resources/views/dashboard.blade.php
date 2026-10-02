@@ -168,6 +168,7 @@
                 <p class="text-sm text-gray-400 mb-5">Buat data baru</p>
 
                 <div class="space-y-2.5">
+                    @can('create', App\Models\Agenda::class)
                     <a href="{{ route('admin.agendas.create') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white transition-all duration-200 group">
                         <div class="w-8 h-8 rounded-xl bg-primary/30 flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -175,6 +176,8 @@
                         <span class="text-sm font-semibold">Buat Agenda Baru</span>
                         <svg class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
                     </a>
+                    @endcan
+                    @can('create', App\Models\Employee::class)
                     <a href="{{ route('admin.employees.create') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white transition-all duration-200 group">
                         <div class="w-8 h-8 rounded-xl bg-secondary/30 flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"/></svg>
@@ -182,6 +185,8 @@
                         <span class="text-sm font-semibold">Tambah Pegawai</span>
                         <svg class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
                     </a>
+                    @endcan
+                    @can('create', App\Models\Room::class)
                     <a href="{{ route('admin.rooms.create') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/15 text-white transition-all duration-200 group">
                         <div class="w-8 h-8 rounded-xl bg-blue-500/30 flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"/></svg>
@@ -189,6 +194,7 @@
                         <span class="text-sm font-semibold">Tambah Ruangan</span>
                         <svg class="w-4 h-4 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
                     </a>
+                    @endcan
                 </div>
             </div>
         </div>

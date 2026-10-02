@@ -12,7 +12,7 @@ class PruneNonAdminUsers extends Command
     protected $signature = 'users:prune-non-admin
                                 {--keep-email=* : Email tambahan yang dipertahankan (selain admin default)}
                                 {--keep-username=* : Username tambahan yang dipertahankan (selain admin default)}
-                                {--delete-manager-it : Hapus juga akun ber-jabatan MANAGER IT (kecuali yang masuk keep-list)}
+                                {--delete-privileged : Hapus juga akun yang memegang izin kelola (kecuali yang masuk keep-list)}
                                 {--dry-run : Tampilkan rencana penghapusan tanpa benar-benar menghapus}
                                 {--force : Lewati konfirmasi}';
 
@@ -33,12 +33,9 @@ class PruneNonAdminUsers extends Command
         $targets = User::query()
             ->whereNotIn('email', $keepEmails)
             ->whereNotIn('username', $keepUsernames)
-            // Proteksi lapis kedua: akun MANAGER IT dianggap admin.
-            ->when(! $this->option('delete-manager-it'), function ($query) {
-                $query->where(function ($query) {
-                    $query->whereDoesntHave('employee')
-                        ->orWhereHas('employee', fn ($e) => $e->where('job_position', '!=', 'MANAGER IT'));
-                });
+            // Proteksi lapis kedua: akun pemegang izin kelola dianggap admin.
+            ->when(! $this->option('delete-privileged'), function ($query) {
+                $query->whereDoesntHave('roles.permissions', fn ($q) => $q->whereIn('key', ['users.manage', 'roles.manage']));
             })
             ->orderBy('id')
             ->get(['id', 'name', 'username', 'email']);

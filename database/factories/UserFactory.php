@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -32,6 +33,19 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Aktor bawaan factory = pemegang role superadmin, agar test lama
+     * yang memakai user factory tetap berjalan. Test otorisasi baru
+     * wajib mengeset role secara eksplisit via roles()->sync().
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $role = Role::firstOrCreate(['name' => Role::SYSTEM_SUPERADMIN]);
+            $user->roles()->syncWithoutDetaching([$role->id]);
+        });
     }
 
     /**

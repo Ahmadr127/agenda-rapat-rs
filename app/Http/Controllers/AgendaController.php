@@ -13,12 +13,15 @@ use Illuminate\Http\Request;
 use App\Http\Requests\AgendaRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class AgendaController extends Controller
 {
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Agenda::class);
+
         $q = trim((string) $request->input('q'));
         $type = $request->input('type');
         $roomId = $request->input('room_id');
@@ -41,6 +44,10 @@ class AgendaController extends Controller
             ->when($eventLeaderId, fn ($query) => $query->where('event_leader_id', $eventLeaderId))
             ->when($dateFrom, fn ($query) => $query->whereDate('event_date', '>=', $dateFrom))
             ->when($dateTo, fn ($query) => $query->whereDate('event_date', '<=', $dateTo))
+            ->when(
+                ! $request->user()->can('agendas.manage-all') && $request->user()->can('agendas.manage'),
+                fn ($query) => $query->where('unit_id', $request->user()->unitId()),
+            )
             ->paginate($perPage)
             ->withQueryString();
 
@@ -58,8 +65,11 @@ class AgendaController extends Controller
 
     public function create()
     {
+        Gate::authorize('create', Agenda::class);
+
         $userUnit = auth()->user()->employee?->unit;
-        return view("admin.agendas.create", compact('userUnit'));
+
+        return view("admin.agendas.create", compact('userUnit') + $this->agendaFormAccess($userUnit));
     }
 
     public function searchTypes(Request $request)
@@ -122,6 +132,8 @@ class AgendaController extends Controller
 
     public function show(Agenda $agenda)
     {
+        Gate::authorize('view', $agenda);
+
         $agenda->load([
             "room",
             "unit",
@@ -174,6 +186,8 @@ class AgendaController extends Controller
 
     public function edit(Agenda $agenda)
     {
+        Gate::authorize('update', $agenda);
+
         $agenda->load([
             "room",
             "unit",
@@ -183,7 +197,8 @@ class AgendaController extends Controller
         ]);
 
         $userUnit = auth()->user()->employee?->unit;
-        return view("admin.agendas.edit", compact("agenda", "userUnit"));
+
+        return view("admin.agendas.edit", compact("agenda", "userUnit") + $this->agendaFormAccess($userUnit));
     }
 
     public function update(AgendaRequest $request, Agenda $agenda)
@@ -217,6 +232,8 @@ class AgendaController extends Controller
 
     public function exportCsv()
     {
+        Gate::authorize('viewAny', Agenda::class);
+
         $headers = [
             "Content-Type" => "text/csv; charset=UTF-8",
             "Content-Disposition" => 'attachment; filename="agendas.csv"',
@@ -267,6 +284,8 @@ class AgendaController extends Controller
 
     public function exportPdf(Agenda $agenda)
     {
+        Gate::authorize('view', $agenda);
+
         $agenda->load([
             "room",
             "unit",
@@ -519,6 +538,8 @@ class AgendaController extends Controller
 
     public function exportQuizCsv(Agenda $agenda)
     {
+        Gate::authorize('view', $agenda);
+
         $agenda->load(['agendaQuestions', 'bankSoal', 'unit', 'room', 'eventLeader']);
 
         $quizComparison = $this->buildQuizComparison($agenda);
@@ -583,6 +604,8 @@ class AgendaController extends Controller
 
     public function destroy(Agenda $agenda)
     {
+        Gate::authorize('delete', $agenda);
+
         if ($agenda->letter_file_path) {
             Storage::disk("public")->delete($agenda->letter_file_path);
         }
@@ -789,6 +812,21 @@ class AgendaController extends Controller
     private function searchOperator(): string
     {
         return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+    }
+
+    /**
+     * Variabel bantu form agenda: pemegang izin penuh bebas memilih unit
+     * dan tipe; sisanya terkunci ke unit sendiri (unit SDM terkunci ke
+     * tipe rapat, sesuai aturan bisnis yang berlaku).
+     */
+    private function agendaFormAccess($userUnit): array
+    {
+        $canManageAll = auth()->user()->can('agendas.manage-all');
+
+        return [
+            'canChooseUnit' => $canManageAll,
+            'typeLockedToRapat' => ! $canManageAll && $userUnit?->name === 'SDM',
+        ];
     }
 
     private function syncAgendaQuestionsFromTemplate(

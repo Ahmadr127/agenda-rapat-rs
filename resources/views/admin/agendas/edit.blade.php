@@ -21,13 +21,13 @@
                 <h3 class="text-lg font-bold text-gray-900">Ubah Agenda</h3>
                 <p class="text-sm text-gray-400 mt-0.5">Pilih tipe agenda di bagian atas lalu perbarui seluruh detail yang relevan.</p>
             </div>
-            <div class="p-8" x-data="{ type: '{{ old('type', $userUnit?->name === 'SDM' ? 'rapat' : $agenda->type) }}', presenterCount: {{ $initialPresenterCount }} }">
+            <div class="p-8" x-data="{ type: '{{ old('type', ($typeLockedToRapat ?? false) ? 'rapat' : $agenda->type) }}', presenterCount: {{ $initialPresenterCount }} }">
                 <form action="{{ route('admin.agendas.update', $agenda) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
                     @method('PUT')
 
-                    @if($userUnit?->name === 'SDM')
-                        {{-- SDM unit: type is locked to Rapat, selector is hidden --}}
+                    @if($typeLockedToRapat ?? false)
+                        {{-- Tipe dikunci ke Rapat (aturan unit), selector disembunyikan --}}
                         <input type="hidden" name="type" value="rapat">
                         <div class="pb-4 border-b border-gray-100">
                             <div class="flex items-center gap-2 rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3">
@@ -39,7 +39,7 @@
                             </div>
                         </div>
                     @else
-                        {{-- Non-SDM units: show all three types --}}
+                        {{-- Tampilkan semua tipe --}}
                         <div class="pb-4 border-b border-gray-100">
                             <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.75 6.75A2.25 2.25 0 017 4.5h10a2.25 2.25 0 012.25 2.25v10A2.25 2.25 0 0117 19H7a2.25 2.25 0 01-2.25-2.25v-10z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9h7.5M8.25 12h7.5M8.25 15h4.5"/></svg>
@@ -65,7 +65,7 @@
                         </div>
                     @endif
 
-                    <div x-show="type || '{{ $userUnit?->name }}' === 'SDM'" x-transition.opacity class="space-y-5" x-cloak>
+                    <div x-show="type" x-transition.opacity class="space-y-5" x-cloak>
                         <div class="pb-4 border-b border-gray-100">
                             <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
@@ -122,7 +122,23 @@
                                     </div>
                                 </template>
 
-                                <input type="hidden" name="unit_id" value="{{ old('unit_id', $userUnit->id) }}">
+                                @if($canChooseUnit ?? false)
+                                    <div>
+                                        <label for="unit_id" class="block text-sm font-semibold text-gray-700 mb-2">Unit Penyelenggara</label>
+                                        <x-searchable-select
+                                            name="unit_id"
+                                            search-url="{{ route('admin.units.search') }}"
+                                            :selected-id="old('unit_id', $agenda->unit_id)"
+                                            :selected-label="old('unit_id') ? null : $agenda->unit?->name"
+                                            placeholder="Cari unit..."
+                                            required
+                                        />
+                                        <p class="text-xs text-gray-400 mt-1">Anda memiliki izin penuh sehingga dapat memilih unit mana pun.</p>
+                                        @error('unit_id') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                                    </div>
+                                @else
+                                    <input type="hidden" name="unit_id" value="{{ old('unit_id', $userUnit?->id) }}">
+                                @endif
 
                                 <div>
                                     <label for="event_leader_id" class="block text-sm font-semibold text-gray-700 mb-2">

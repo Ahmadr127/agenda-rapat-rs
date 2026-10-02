@@ -10,6 +10,7 @@ use App\Http\Controllers\PublicAgendaController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\PublicAgendaInputController;
 use App\Http\Controllers\PublicQuizController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -96,8 +97,8 @@ Route::middleware("auth")
         ])->name("bank-soals.template");
         Route::resource("bank-soals", BankSoalController::class);
 
-        // Account management — MANAGER IT only
-        Route::middleware('manager_it')->group(function () {
+        // Account management — pemegang izin users.manage
+        Route::middleware('can:users.manage')->group(function () {
             Route::get('users', [UserController::class, 'index'])->name('users.index');
             Route::get('users/create', [UserController::class, 'create'])->name('users.create');
             Route::post('users', [UserController::class, 'store'])->name('users.store');
@@ -106,6 +107,11 @@ Route::middleware("auth")
             Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
             Route::get('users/{user}/change-password', [UserController::class, 'editPassword'])->name('users.change-password');
             Route::put('users/{user}/change-password', [UserController::class, 'updatePassword'])->name('users.update-password');
+        });
+
+        // Role & permission management — pemegang izin roles.manage
+        Route::middleware('can:roles.manage')->group(function () {
+            Route::resource('roles', RoleController::class)->except(['show']);
         });
     });
 

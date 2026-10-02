@@ -61,6 +61,28 @@
                         </div>
                     </div>
 
+                    <div>
+                        <span class="block text-sm font-semibold text-gray-700 mb-2">Role</span>
+                        @php $checkedRoles = old('role_ids', []); @endphp
+                        <div class="space-y-2.5 rounded-2xl border border-gray-200 bg-gray-50/50 p-4">
+                            @forelse($roles as $role)
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="checkbox" name="role_ids[]" value="{{ $role->id }}" @checked(in_array($role->id, $checkedRoles)) class="mt-0.5 w-4 h-4 rounded text-primary border-gray-300 focus:ring-primary">
+                                    <span>
+                                        <span class="block text-sm font-medium text-gray-800">{{ $role->name }}</span>
+                                        @if($role->description)
+                                            <span class="block text-xs text-gray-400">{{ $role->description }}</span>
+                                        @endif
+                                    </span>
+                                </label>
+                            @empty
+                                <p class="text-xs text-gray-400">Belum ada role. Buat dulu di menu Role & Izin.</p>
+                            @endforelse
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Tanpa role = hanya bisa melihat (hak minimal).</p>
+                        @error('role_ids') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                    </div>
+
                     <div class="flex items-center gap-3 pt-3">
                         <button type="submit" class="px-6 py-3 rounded-2xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-700 hover:shadow-lg active:scale-[0.98] transition-all duration-200">Simpan</button>
                         <a href="{{ route('admin.users.index') }}" class="px-5 py-3 rounded-2xl bg-gray-100 text-gray-600 text-sm font-semibold hover:bg-gray-200 transition-colors">Batal</a>

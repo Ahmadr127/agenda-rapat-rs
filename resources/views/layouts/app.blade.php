@@ -152,9 +152,8 @@
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Bank Soal</span>
                 </a>
 
-                {{-- Manajemen Akun (MANAGER IT only) --}}
-                @php $currentEmployee = Auth::user()->employee; @endphp
-                @if($currentEmployee && $currentEmployee->job_position === 'MANAGER IT')
+                {{-- Manajemen Akun (izin users.manage) --}}
+                @can('users.manage')
                 <a href="{{ route('admin.users.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.users.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -166,7 +165,22 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Manajemen Akun</span>
                 </a>
-                @endif
+                @endcan
+
+                {{-- Role & Izin (izin roles.manage) --}}
+                @can('roles.manage')
+                <a href="{{ route('admin.roles.index') }}"
+                    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                              {{ request()->routeIs('admin.roles.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
+                    <div
+                        class="w-9 h-9 rounded-xl {{ request()->routeIs('admin.roles.*') ? 'bg-white/20' : 'bg-white/5 group-hover:bg-white/10' }} flex items-center justify-center flex-shrink-0 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-1.5 5.25h4.5m-4.5 0a3 3 0 01-3-3m3 3a3 3 0 003-3m-3 3L9 15m9-6.75h-4.5m4.5 0a3 3 0 00-3-3m3 3a3 3 0 013-3m-3 3L15 9m-3 3.75a3 3 0 01-3-3m3 3a3 3 0 003-3m-3 3L9 12.75" />
+                        </svg>
+                    </div>
+                    <span x-show="sidebarOpen" class="text-sm font-semibold">Role & Izin</span>
+                </a>
+                @endcan
             </nav>
 
             {{-- User Section --}}

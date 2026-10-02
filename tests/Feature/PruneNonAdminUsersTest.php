@@ -27,6 +27,9 @@ class PruneNonAdminUsersTest extends TestCase
         $admin = User::factory()->create(['email' => 'admin@rsazra.co.id', 'username' => 'admin']);
         $userA = User::factory()->create();
         $userB = User::factory()->create();
+        // Jadikan akun biasa: lepas role bawaan factory.
+        $userA->roles()->detach();
+        $userB->roles()->detach();
         $employeeA = Employee::factory()->create(['user_id' => $userA->id]);
         $employeeB = Employee::factory()->create(['user_id' => $userB->id]);
 
@@ -46,18 +49,30 @@ class PruneNonAdminUsersTest extends TestCase
         $this->assertDatabaseHas('employees', ['id' => $employeeB->id, 'user_id' => null]);
     }
 
-    public function test_manager_it_is_protected_by_default(): void
+    public function test_privileged_user_is_protected_by_default(): void
     {
         User::factory()->create(['email' => 'admin@rsazra.co.id', 'username' => 'admin']);
-        $manager = User::factory()->create();
-        Employee::factory()->create(['user_id' => $manager->id, 'job_position' => 'MANAGER IT']);
+        // Factory memberi role superadmin (pemegang izin kelola).
+        $privileged = User::factory()->create();
         $regular = User::factory()->create();
+        $regular->roles()->detach();
 
         $this->artisan('users:prune-non-admin', ['--force' => true])
             ->assertSuccessful();
 
-        $this->assertDatabaseHas('users', ['id' => $manager->id]);
+        $this->assertDatabaseHas('users', ['id' => $privileged->id]);
         $this->assertDatabaseMissing('users', ['id' => $regular->id]);
+    }
+
+    public function test_delete_privileged_option_removes_them_too(): void
+    {
+        User::factory()->create(['email' => 'admin@rsazra.co.id', 'username' => 'admin']);
+        $privileged = User::factory()->create();
+
+        $this->artisan('users:prune-non-admin', ['--force' => true, '--delete-privileged' => true])
+            ->assertSuccessful();
+
+        $this->assertDatabaseMissing('users', ['id' => $privileged->id]);
     }
 
     public function test_keep_email_option_is_respected(): void

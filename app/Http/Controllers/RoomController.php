@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class RoomController extends Controller
 {
@@ -45,6 +46,8 @@ class RoomController extends Controller
 
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Room::class);
+
         $q = trim((string) $request->input('q'));
         $operator = $this->searchOperator();
         $perPage = (int) $request->input('per_page', 10);
@@ -63,11 +66,15 @@ class RoomController extends Controller
 
     public function create()
     {
+        Gate::authorize('create', Room::class);
+
         return view('admin.rooms.create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('create', Room::class);
+
         $validated = $request->validate([
             'room_name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -81,11 +88,15 @@ class RoomController extends Controller
 
     public function edit(Room $room)
     {
+        Gate::authorize('update', $room);
+
         return view('admin.rooms.edit', compact('room'));
     }
 
     public function update(Request $request, Room $room)
     {
+        Gate::authorize('update', $room);
+
         $validated = $request->validate([
             'room_name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -99,6 +110,8 @@ class RoomController extends Controller
 
     public function destroy(Room $room)
     {
+        Gate::authorize('delete', $room);
+
         $room->delete();
 
         return redirect()->route('admin.rooms.index')

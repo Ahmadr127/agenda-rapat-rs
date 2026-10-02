@@ -40,6 +40,7 @@
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Pegawai</th>
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Role</th>
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Dibuat</th>
             <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
         </x-slot>
@@ -71,13 +72,25 @@
                             {{-- Job position --}}
                             <td class="px-6 py-4">
                                 @if($user->employee?->job_position)
-                                    <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold
-                                        {{ $user->employee->job_position === 'MANAGER IT' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600' }}">
+                                    <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600">
                                         {{ $user->employee->job_position }}
                                     </span>
                                 @else
                                     <span class="text-gray-400 text-sm">—</span>
                                 @endif
+                            </td>
+
+                            {{-- Roles (dari database) --}}
+                            <td class="px-6 py-4">
+                                <div class="flex flex-wrap gap-1">
+                                    @forelse($user->roles as $role)
+                                        <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary-100 text-primary-700">
+                                            {{ $role->name }}
+                                        </span>
+                                    @empty
+                                        <span class="text-gray-400 text-sm">Hanya lihat</span>
+                                    @endforelse
+                                </div>
                             </td>
 
                             {{-- Created at --}}
@@ -113,7 +126,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />

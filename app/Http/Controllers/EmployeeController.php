@@ -8,6 +8,7 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
@@ -32,6 +33,10 @@ class EmployeeController extends Controller
         $employees = Employee::query()
             ->orderBy('full_name')
             ->when($request->boolean('without_account'), fn ($query) => $query->whereNull('user_id'))
+            ->when(
+                $request->user()->can('employees.manage') && ! $request->user()->can('employees.manage-all'),
+                fn ($query) => $query->where('unit_id', $request->user()->unitId()),
+            )
             ->when($search !== '', function ($query) use ($search, $operator) {
                 $query->where(function ($query) use ($search, $operator) {
                     $query->where('full_name', $operator, "%{$search}%")
@@ -53,6 +58,8 @@ class EmployeeController extends Controller
 
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Employee::class);
+
         $q = trim((string) $request->input('q'));
         $unitId = $request->input('unit_id');
         $operator = $this->searchOperator();
@@ -69,6 +76,10 @@ class EmployeeController extends Controller
                     ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%")->orWhere('username', $operator, "%{$q}%"));
             }))
             ->when($unitId, fn ($query) => $query->where('unit_id', $unitId))
+            ->when(
+                ! $request->user()->can('employees.manage-all') && $request->user()->can('employees.manage'),
+                fn ($query) => $query->where('unit_id', $request->user()->unitId()),
+            )
             ->paginate($perPage)
             ->withQueryString();
 
@@ -79,11 +90,15 @@ class EmployeeController extends Controller
 
     public function create()
     {
+        Gate::authorize('create', Employee::class);
+
         return view('admin.employees.create');
     }
 
     public function store(Request $request)
     {
+        Gate::authorize('create', Employee::class);
+
         $validated = $request->validate([
             'nip' => 'required|string|max:255|unique:employees,nip',
             'full_name' => 'required|string|max:255',
@@ -92,6 +107,8 @@ class EmployeeController extends Controller
             'structural_role' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
         ]);
+
+        $this->ensureUnitAllowed($request, (int) $validated['unit_id']);
 
         $user = $this->syncUser(null, $validated['full_name']);
         $validated['user_id'] = $user->id;
@@ -105,6 +122,8 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
+        Gate::authorize('update', $employee);
+
         $employee->load('unit');
 
         return view('admin.employees.edit', compact('employee'));
@@ -112,6 +131,8 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee)
     {
+        Gate::authorize('update', $employee);
+
         $validated = $request->validate([
             'nip' => 'required|string|max:255|unique:employees,nip,'.$employee->id,
             'full_name' => 'required|string|max:255',
@@ -120,6 +141,8 @@ class EmployeeController extends Controller
             'structural_role' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
         ]);
+
+        $this->ensureUnitAllowed($request, (int) $validated['unit_id']);
 
         $this->syncUser($employee->user_id, $validated['full_name']);
 
@@ -132,6 +155,8 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        Gate::authorize('delete', $employee);
+
         $userId = $employee->user_id;
 
         $employee->delete();
@@ -148,6 +173,23 @@ class EmployeeController extends Controller
     private function searchOperator(): string
     {
         return DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+    }
+
+    /**
+     * Pemegang izin kelola terbatas wajib memakai unitnya sendiri.
+     * Menutup lubang manipulasi unit_id lewat request buatan.
+     */
+    private function ensureUnitAllowed(Request $request, int $unitId): void
+    {
+        if ($request->user()->can('employees.manage-all')) {
+            return;
+        }
+
+        abort_unless(
+            $request->user()->unitId() !== null && $unitId === $request->user()->unitId(),
+            403,
+            'Anda hanya dapat mengelola pegawai pada unit sendiri.',
+        );
     }
 
     /**

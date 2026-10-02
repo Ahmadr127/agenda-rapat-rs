@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Employee;
+use App\Models\Role;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -16,6 +17,8 @@ class AdminAccount extends Seeder
      */
     public function run(): void
     {
+        $this->call(RbacSeeder::class);
+
         $user = User::updateOrCreate(
             ['email' => 'admin@rsazra.co.id'],
             [
@@ -38,5 +41,8 @@ class AdminAccount extends Seeder
                 'profession' => 'Administrasi',
             ]
         );
+
+        $superadmin = Role::where('name', Role::SYSTEM_SUPERADMIN)->firstOrFail();
+        $user->roles()->syncWithoutDetaching([$superadmin->id]);
     }
 }

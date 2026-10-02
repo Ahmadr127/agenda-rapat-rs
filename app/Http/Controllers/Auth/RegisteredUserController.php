@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -45,6 +46,13 @@ class RegisteredUserController extends Controller
         ]);
 
         event(new Registered($user));
+
+        // Akun registrasi mandiri mendapat hak minimal.
+        // Dilewati bila tabel role belum di-seed.
+        $viewer = Role::where('name', Role::SYSTEM_VIEWER)->first();
+        if ($viewer) {
+            $user->roles()->attach($viewer);
+        }
 
         Auth::login($user);
 

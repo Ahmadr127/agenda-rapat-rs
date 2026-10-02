@@ -149,6 +149,8 @@ class UserAccountTest extends TestCase
     public function test_regular_user_cannot_manage_accounts(): void
     {
         $user = User::factory()->create();
+        // Akun biasa: tanpa role apa pun (factory memberi superadmin).
+        $user->roles()->detach();
         $employee = $this->createPlainEmployee();
 
         $this->actingAs($user)->get(route('admin.users.index'))->assertForbidden();

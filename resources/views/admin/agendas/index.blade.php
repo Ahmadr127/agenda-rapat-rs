@@ -27,6 +27,7 @@
 
     <div class="mb-6">
         <form method="GET" action="{{ route('admin.agendas.index') }}" class="flex flex-col gap-3">
+            <input type="hidden" name="per_page" value="{{ $perPage ?? request('per_page', 10) }}">
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
                     <input
@@ -94,25 +95,23 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-primary-700 text-white">
-                    <tr class="border-b border-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Judul</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Deskripsi</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Tanggal</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jam</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Ruangan</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Pimpinan Agenda</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($agendas as $index => $agenda)
-                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                            <td class="px-6 py-4">
+    <x-data-table :paginator="$agendas" :perPage="$perPage ?? 10">
+        <x-slot name="header">
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Judul</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Deskripsi</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Tanggal</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jam</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Ruangan</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Pimpinan Agenda</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
+        </x-slot>
+
+        @forelse($agendas as $index => $agenda)
+            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $agendas->firstItem() + $index }}</td>
+                <td class="px-6 py-4">
                                 <a href="{{ route('admin.agendas.show', $agenda) }}" class="text-sm font-semibold text-gray-800 group-hover:text-primary transition-colors">{{ $agenda->title }}</a>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500 whitespace-pre-wrap">{{ $agenda->description ?? '-' }}</td>
@@ -143,7 +142,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
                                 </div>
@@ -151,11 +150,5 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($agendas->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">{{ $agendas->links() }}</div>
-        @endif
-    </div>
+    </x-data-table>
 </x-app-layout>

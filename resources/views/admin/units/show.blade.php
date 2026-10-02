@@ -54,22 +54,20 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-primary-700 text-white">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-12">No</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">NIP</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Lengkap</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Posisi Pekerjaan</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Profesi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @forelse($employees as $index => $employee)
-                            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $employees->firstItem() + $index }}</td>
+                <x-data-table :paginator="$employees" :perPage="$perPage ?? 10">
+                    <x-slot name="header">
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-12">No</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">NIP</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Lengkap</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Posisi Pekerjaan</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Profesi</th>
+                    </x-slot>
+
+                    @forelse($employees as $index => $employee)
+                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                            <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $employees->firstItem() + $index }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $employee->nip }}</td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
@@ -92,12 +90,8 @@
                                 </td>
                             </tr>
                         @endforelse
-                    </tbody>
-                </table>
+                </x-data-table>
             </div>
-            @if($employees->hasPages())
-                <div class="px-6 py-4 border-t border-gray-100">{{ $employees->links() }}</div>
-            @endif
         </div>
     </div>
 </x-app-layout>

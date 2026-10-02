@@ -27,19 +27,17 @@
         />
     </div>
 
-    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-primary-700 text-white">
-                    <tr class="border-b border-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Unit</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($units as $index => $unit)
-                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                            <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ $unit->name }}</td>
+    <x-data-table :paginator="$units" :perPage="$perPage ?? 10">
+        <x-slot name="header">
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Unit</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
+        </x-slot>
+
+        @forelse($units as $index => $unit)
+            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $units->firstItem() + $index }}</td>
+                <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ $unit->name }}</td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('admin.units.show', $unit) }}" class="p-2 rounded-xl hover:bg-primary-50 text-gray-400 hover:text-primary transition-colors" title="Detail">
@@ -59,7 +57,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="px-6 py-12 text-center">
+                            <td colspan="3" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
                                 </div>
@@ -67,11 +65,5 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($units->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">{{ $units->links() }}</div>
-        @endif
-    </div>
+    </x-data-table>
 </x-app-layout>

@@ -42,14 +42,18 @@ class UnitController extends Controller
     {
         $q = trim((string) $request->input('q'));
         $operator = $this->searchOperator();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $units = Unit::query()
             ->orderBy('name')
             ->when($q !== '', fn ($query) => $query->where('name', $operator, "%{$q}%"))
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.units.index', compact('units', 'q'));
+        return view('admin.units.index', compact('units', 'q', 'perPage'));
     }
 
     public function create()
@@ -78,6 +82,10 @@ class UnitController extends Controller
     {
         $q = trim((string) $request->input('q'));
         $operator = $this->searchOperator();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $employees = $unit->employees()
             ->with(['user'])
@@ -87,10 +95,10 @@ class UnitController extends Controller
                     ->orWhere('nip', $operator, "%{$q}%")
                     ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%"));
             }))
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.units.show', compact('unit', 'employees', 'q'));
+        return view('admin.units.show', compact('unit', 'employees', 'q', 'perPage'));
     }
 
     public function update(Request $request, Unit $unit)

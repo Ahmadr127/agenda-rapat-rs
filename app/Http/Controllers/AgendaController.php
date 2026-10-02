@@ -27,6 +27,10 @@ class AgendaController extends Controller
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         $operator = $this->searchOperator();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $agendas = Agenda::with(['room', 'unit', 'eventLeader'])
             ->latest()
@@ -37,7 +41,7 @@ class AgendaController extends Controller
             ->when($eventLeaderId, fn ($query) => $query->where('event_leader_id', $eventLeaderId))
             ->when($dateFrom, fn ($query) => $query->whereDate('event_date', '>=', $dateFrom))
             ->when($dateTo, fn ($query) => $query->whereDate('event_date', '<=', $dateTo))
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         $typeLabels = ['rapat' => 'Rapat', 'diklat' => 'Diklat', 'pelatihan' => 'Pelatihan'];
@@ -48,7 +52,7 @@ class AgendaController extends Controller
 
         return view('admin.agendas.index', compact(
             'agendas', 'q', 'type', 'typeLabel', 'selectedRoom', 'selectedUnit',
-            'selectedEventLeader', 'dateFrom', 'dateTo'
+            'selectedEventLeader', 'dateFrom', 'dateTo', 'perPage'
         ));
     }
 

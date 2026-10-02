@@ -12,6 +12,7 @@
 
     <div class="bg-white rounded-3xl border border-gray-100 p-5 mb-6">
         <form method="GET" action="{{ route('admin.employee-recaps.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <input type="hidden" name="per_page" value="{{ $perPage ?? request('per_page', 10) }}">
             <div class="md:col-span-2">
                 <label for="search" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Cari</label>
                 <input
@@ -82,25 +83,23 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-primary-700 text-white">
-                    <tr class="border-b border-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">NIP</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Pegawai</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
-                        <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Ikut Agenda</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Jam Rapat</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Jam Diklat/Pelatihan</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($employees as $index => $employee)
-                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                            <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $employee->nip }}</td>
+    <x-data-table :paginator="$employees" :perPage="$perPage ?? 10">
+        <x-slot name="header">
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">NIP</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Pegawai</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
+            <th class="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider">Ikut Agenda</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Jam Rapat</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Jam Diklat/Pelatihan</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
+        </x-slot>
+
+        @forelse($employees as $index => $employee)
+            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $employees->firstItem() + $index }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $employee->nip }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center text-xs font-bold text-primary">
@@ -138,7 +137,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.503 3.503 12 4.125 12h2.25c.622 0 1.125.503 1.125 1.125V20.25H3v-7.125zM9.75 8.625c0-.622.503-1.125 1.125-1.125h2.25c.622 0 1.125.503 1.125 1.125v11.625H9.75V8.625zM16.5 4.125C16.5 3.503 17.003 3 17.625 3h2.25C20.497 3 21 3.503 21 4.125V20.25h-4.5V4.125z"/></svg>
                                 </div>
@@ -146,12 +145,5 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($employees->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">{{ $employees->links() }}</div>
-        @endif
-    </div>
+    </x-data-table>
 </x-app-layout>

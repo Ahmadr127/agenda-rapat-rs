@@ -47,6 +47,10 @@ class BankSoalController extends Controller
     {
         $q = trim((string) $request->input('q', ''));
         $operator = $this->searchOperator();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $bankSoals = BankSoal::withCount('questions')
             ->when($q !== '', function ($query) use ($q, $operator) {
@@ -54,10 +58,10 @@ class BankSoalController extends Controller
                 $query->where('title', $operator, "%{$escaped}%");
             })
             ->latest()
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.bank-soals.index', compact('bankSoals', 'q'));
+        return view('admin.bank-soals.index', compact('bankSoals', 'q', 'perPage'));
     }
 
     public function create()

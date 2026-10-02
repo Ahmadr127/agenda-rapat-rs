@@ -5,6 +5,9 @@
 ])
 
 <form method="GET" action="{{ $action }}" class="flex flex-col sm:flex-row gap-3">
+    @if(request()->has('per_page'))
+        <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+    @endif
     <div class="flex-1">
         <input
             type="text"

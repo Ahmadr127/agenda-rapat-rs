@@ -27,20 +27,18 @@
         />
     </div>
 
-    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-primary-700 text-white">
-                    <tr class="border-b border-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Ruangan</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Deskripsi</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($rooms as $index => $room)
-                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                            <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ $room->room_name }}</td>
+    <x-data-table :paginator="$rooms" :perPage="$perPage ?? 10">
+        <x-slot name="header">
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Ruangan</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Deskripsi</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
+        </x-slot>
+
+        @forelse($rooms as $index => $room)
+            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $rooms->firstItem() + $index }}</td>
+                <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ $room->room_name }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $room->description ?? '-' }}</td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-1">
@@ -58,7 +56,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="px-6 py-12 text-center">
+                            <td colspan="4" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21"/></svg>
                                 </div>
@@ -66,11 +64,5 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($rooms->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">{{ $rooms->links() }}</div>
-        @endif
-    </div>
+    </x-data-table>
 </x-app-layout>

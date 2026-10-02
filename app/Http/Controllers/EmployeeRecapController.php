@@ -14,9 +14,13 @@ class EmployeeRecapController extends Controller
     public function index(Request $request)
     {
         $units = Unit::orderBy("name")->get();
+        $perPage = (int) $request->input("per_page", 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $employees = $this->buildOrderedAggregateRecapQuery($request)
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         $summaryRow = DB::query()
@@ -42,7 +46,7 @@ class EmployeeRecapController extends Controller
 
         return view(
             "admin.employee-recaps.index",
-            compact("employees", "summary", "units"),
+            compact("employees", "summary", "units", "perPage"),
         );
     }
 
@@ -93,9 +97,13 @@ class EmployeeRecapController extends Controller
     public function agendas(Employee $employee, Request $request)
     {
         $employee->load("unit");
+        $perPage = (int) $request->input("per_page", 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $agendas = $this->buildOrderedAggregateAgendaQuery($employee, $request)
-            ->cursorPaginate(15, ["*"], "agenda_cursor")
+            ->cursorPaginate($perPage, ["*"], "agenda_cursor")
             ->withQueryString();
 
         $summaryRow = DB::query()
@@ -116,7 +124,7 @@ class EmployeeRecapController extends Controller
 
         return view(
             "admin.employee-recaps.agendas",
-            compact("employee", "agendas", "summary"),
+            compact("employee", "agendas", "summary", "perPage"),
         );
     }
 

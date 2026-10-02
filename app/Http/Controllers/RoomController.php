@@ -47,14 +47,18 @@ class RoomController extends Controller
     {
         $q = trim((string) $request->input('q'));
         $operator = $this->searchOperator();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $rooms = Room::query()
             ->orderBy('room_name')
             ->when($q !== '', fn ($query) => $query->where('room_name', $operator, "%{$q}%"))
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.rooms.index', compact('rooms', 'q'));
+        return view('admin.rooms.index', compact('rooms', 'q', 'perPage'));
     }
 
     public function create()

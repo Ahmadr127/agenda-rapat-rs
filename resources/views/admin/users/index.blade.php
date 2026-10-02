@@ -32,25 +32,23 @@
     </div>
 
     {{-- Table --}}
-    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-primary-700 text-white">
-                    <tr class="border-b border-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Akun</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Username</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Pegawai</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Dibuat</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($users as $index => $user)
-                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                            {{-- Name + Avatar --}}
-                            <td class="px-6 py-4">
+    <x-data-table :paginator="$users" :perPage="$perPage ?? 10">
+        <x-slot name="header">
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Akun</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Username</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Pegawai</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Dibuat</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
+        </x-slot>
+
+        @forelse($users as $index => $user)
+            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $users->firstItem() + $index }}</td>
+                {{-- Name + Avatar --}}
+                <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">
                                         {{ strtoupper(substr($user->name, 0, 1)) }}
@@ -115,7 +113,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="8" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -125,12 +123,5 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($users->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">{{ $users->links() }}</div>
-        @endif
-    </div>
+    </x-data-table>
 </x-app-layout>

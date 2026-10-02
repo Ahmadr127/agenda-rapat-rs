@@ -40,25 +40,23 @@
         </x-search-filter>
     </div>
 
-    <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-primary-700 text-white">
-                    <tr class="border-b border-gray-100">
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">NIP</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Lengkap</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Posisi Pekerjaan</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Profesi</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($employees as $index => $employee)
-                        <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
-                            <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $employee->nip }}</td>
+    <x-data-table :paginator="$employees" :perPage="$perPage ?? 10">
+        <x-slot name="header">
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">NIP</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Nama Lengkap</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Email</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Posisi Pekerjaan</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Jabatan</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Profesi</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
+        </x-slot>
+
+        @forelse($employees as $index => $employee)
+            <tr class="group transition-colors hover:bg-primary-50/40 {{ $index % 2 === 0 ? 'bg-white' : 'bg-slate-50' }}">
+                <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $employees->firstItem() + $index }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ $employee->nip }}</td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center text-xs font-bold text-primary">{{ strtoupper(substr($employee->full_name, 0, 1)) }}</div>
@@ -90,7 +88,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
                                 </div>
@@ -98,11 +96,5 @@
                             </td>
                         </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($employees->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100">{{ $employees->links() }}</div>
-        @endif
-    </div>
+    </x-data-table>
 </x-app-layout>

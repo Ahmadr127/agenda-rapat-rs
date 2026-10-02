@@ -50,6 +50,7 @@
 
         <div class="bg-white rounded-3xl border border-gray-100 p-5">
             <form method="GET" action="{{ route('admin.employee-recaps.agendas.index', $employee) }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="hidden" name="per_page" value="{{ $perPage ?? request('per_page', 10) }}">
                 <div class="md:col-span-2">
                     <label for="search" class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Cari</label>
                     <input
@@ -116,25 +117,23 @@
             </form>
         </div>
 
-        <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[1100px]">
-                    <thead>
-                        <tr class="border-b border-gray-100">
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Judul Agenda</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Deskripsi</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tanggal</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Waktu</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Unit</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Pimpinan Acara</th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Ruangan</th>
-                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($agendas as $agenda)
-                            <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-6 py-4">
+        <x-data-table :paginator="$agendas" :perPage="$perPage ?? 10">
+            <x-slot name="header">
+                <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Judul Agenda</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Deskripsi</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Tanggal</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Waktu</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Unit</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Pimpinan Acara</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Ruangan</th>
+                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Aksi</th>
+            </x-slot>
+
+            @forelse($agendas as $index => $agenda)
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 text-sm text-gray-400 font-medium">{{ $loop->iteration }}</td>
+                    <td class="px-6 py-4">
                                     <p class="text-sm font-semibold text-gray-800">{{ $agenda->title }}</p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500 max-w-sm">
@@ -171,13 +170,6 @@
                                 </td>
                             </tr>
                         @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            @if($agendas->hasPages())
-                <div class="px-6 py-4 border-t border-gray-100">{{ $agendas->links() }}</div>
-            @endif
-        </div>
+        </x-data-table>
     </div>
 </x-app-layout>

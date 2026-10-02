@@ -56,6 +56,10 @@ class EmployeeController extends Controller
         $q = trim((string) $request->input('q'));
         $unitId = $request->input('unit_id');
         $operator = $this->searchOperator();
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $employees = Employee::with(['unit', 'user'])
             ->orderBy('full_name')
@@ -65,12 +69,12 @@ class EmployeeController extends Controller
                     ->orWhereHas('user', fn ($q2) => $q2->where('email', $operator, "%{$q}%")->orWhere('username', $operator, "%{$q}%"));
             }))
             ->when($unitId, fn ($query) => $query->where('unit_id', $unitId))
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         $selectedUnit = $unitId ? Unit::find($unitId) : null;
 
-        return view('admin.employees.index', compact('employees', 'q', 'selectedUnit'));
+        return view('admin.employees.index', compact('employees', 'q', 'selectedUnit', 'perPage'));
     }
 
     public function create()

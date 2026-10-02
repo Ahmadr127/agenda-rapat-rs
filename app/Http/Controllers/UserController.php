@@ -18,6 +18,10 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $q = trim((string) $request->input('q'));
+        $perPage = (int) $request->input('per_page', 10);
+        if (! in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
 
         $users = User::with('employee')
             ->orderBy('name')
@@ -28,10 +32,10 @@ class UserController extends Controller
                         ->orWhere('email', 'like', "%{$q}%");
                 });
             })
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'q'));
+        return view('admin.users.index', compact('users', 'q', 'perPage'));
     }
 
     public function create(): View

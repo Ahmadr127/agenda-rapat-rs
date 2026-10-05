@@ -714,13 +714,16 @@ class AgendaController extends Controller
 
     private function validateAgenda(Request $request): array
     {
+        $endTimeRule = $request->input('type') === 'rapat'
+            ? 'nullable|date_format:H:i'
+            : 'nullable|required_if:type,diklat|required_if:type,pelatihan|date_format:H:i|after:event_time';
+
         return $request->validate([
             "title" => "required|string|max:255",
             "description" => "nullable|string",
             "event_date" => "required|date",
             "event_time" => "required|date_format:H:i",
-            "event_end_time" =>
-                "nullable|required_if:type,diklat|required_if:type,pelatihan|date_format:H:i|after:event_time",
+            "event_end_time" => $endTimeRule,
             "unit_id" => "required|exists:units,id",
             "event_leader_id" => "required|exists:employees,id",
             "room_id" => "required|exists:rooms,id",
@@ -741,7 +744,6 @@ class AgendaController extends Controller
 
         if ($agendaData["type"] === "rapat") {
             $agendaData["bank_soal_id"] = null;
-            $agendaData["event_end_time"] = null;
         }
 
         return $agendaData;

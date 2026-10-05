@@ -68,7 +68,8 @@
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Beranda</span>
                 </a>
 
-                {{-- Pegawai --}}
+                {{-- Pegawai (satu permission: employees.manage) --}}
+                @can('employees.manage')
                 <a href="{{ route('admin.employees.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.employees.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -81,8 +82,10 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Pegawai</span>
                 </a>
+                @endcan
 
-                {{-- Rekap Karyawan --}}
+                {{-- Rekap Karyawan (satu permission: employees.manage) --}}
+                @can('employees.manage')
                 <a href="{{ route('admin.employee-recaps.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.employee-recaps.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -95,8 +98,10 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Rekap Karyawan</span>
                 </a>
+                @endcan
 
-                {{-- Ruangan --}}
+                {{-- Ruangan (satu permission: rooms.manage) --}}
+                @can('rooms.manage')
                 <a href="{{ route('admin.rooms.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.rooms.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -109,8 +114,10 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Ruangan</span>
                 </a>
+                @endcan
 
-                {{-- Unit --}}
+                {{-- Unit (satu permission: units.manage) --}}
+                @can('units.manage')
                 <a href="{{ route('admin.units.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.units.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -123,8 +130,10 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Unit</span>
                 </a>
+                @endcan
 
-                {{-- Agenda --}}
+                {{-- Agenda (satu permission: agendas.manage) --}}
+                @can('agendas.manage')
                 <a href="{{ route('admin.agendas.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.agendas.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -137,8 +146,10 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Agenda</span>
                 </a>
+                @endcan
 
-                {{-- Bank Soal --}}
+                {{-- Bank Soal (satu permission: bank-soals.manage) --}}
+                @can('bank-soals.manage')
                 <a href="{{ route('admin.bank-soals.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
                               {{ request()->routeIs('admin.bank-soals.*') ? 'bg-white/15 text-white shadow-lg shadow-black/10' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
@@ -151,8 +162,9 @@
                     </div>
                     <span x-show="sidebarOpen" class="text-sm font-semibold">Bank Soal</span>
                 </a>
+                @endcan
 
-                {{-- Manajemen Akun (izin users.manage) --}}
+                {{-- Manajemen Akun (satu permission: users.manage) --}}
                 @can('users.manage')
                 <a href="{{ route('admin.users.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
@@ -167,7 +179,7 @@
                 </a>
                 @endcan
 
-                {{-- Role & Izin (izin roles.manage) --}}
+                {{-- Role & Izin (satu permission: roles.manage) --}}
                 @can('roles.manage')
                 <a href="{{ route('admin.roles.index') }}"
                     class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200

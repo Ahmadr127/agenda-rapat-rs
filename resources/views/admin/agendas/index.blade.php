@@ -116,7 +116,7 @@
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500 whitespace-pre-wrap">{{ $agenda->description ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->event_date->translatedFormat('d M Y') }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500">{{ \Carbon\Carbon::parse($agenda->event_time)->format('H:i') }} - {{\Carbon\Carbon::parse($agenda->event_time)->format('H:i') ?? "Selesai"}} </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ \Carbon\Carbon::parse($agenda->event_time)->format('H:i') }}@if($agenda->event_end_time) - {{ \Carbon\Carbon::parse($agenda->event_end_time)->format('H:i') }}@else - Selesai @endif</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->room->room_name ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->unit?->name ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->eventLeader?->full_name ?? '-' }}</td>

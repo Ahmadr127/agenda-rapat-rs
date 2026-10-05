@@ -114,8 +114,8 @@
                                 <template x-if="type === 'rapat'">
                                     <div>
                                         <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>
-                                        <input type="time" id="event_end_time" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" readOnly disabled>
-                                        <p class="text-xs text-gray-400 mt-1">Agenda rapat tidak memakai batasan pukul selesai.</p>
+                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
+                                        <p class="text-xs text-gray-400 mt-1">Opsional untuk agenda rapat, tanpa batasan.</p>
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>

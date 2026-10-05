@@ -27,13 +27,19 @@ class AgendaRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Rapat tidak memakai batasan pukul selesai: boleh kosong dan
+        // bila diisi pun tidak dikunci harus setelah pukul mulai.
+        // Diklat/pelatihan tetap wajib dan harus setelah pukul mulai.
+        $endTimeRule = $this->input('type') === 'rapat'
+            ? 'nullable|date_format:H:i'
+            : 'nullable|required_if:type,diklat|required_if:type,pelatihan|date_format:H:i|after:event_time';
+
         $rules = [
             "title" => "required|string|max:255",
             "description" => "nullable|string",
             "event_date" => "required|date",
             "event_time" => "required|date_format:H:i",
-            "event_end_time" =>
-                "nullable|required_if:type,diklat|required_if:type,pelatihan|date_format:H:i|after:event_time",
+            "event_end_time" => $endTimeRule,
             "unit_id" => "required|exists:units,id",
             "event_leader_id" => "required|exists:employees,id",
             "room_id" => "required|exists:rooms,id",

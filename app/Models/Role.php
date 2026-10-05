@@ -12,8 +12,8 @@ class Role extends Model
      * nama role disebut di kode; selebihnya memakai permission.
      */
     public const SYSTEM_SUPERADMIN = 'Superadmin';
-    public const SYSTEM_OPERATOR = 'Operator Unit';
-    public const SYSTEM_VIEWER = 'Viewer / Pimpinan';
+    public const SYSTEM_ADMIN = 'Admin';
+    public const SYSTEM_STAFF = 'Staff';
 
     protected $fillable = ['name', 'description'];
 

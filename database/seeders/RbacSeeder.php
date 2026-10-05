@@ -11,6 +11,13 @@ class RbacSeeder extends Seeder
     /**
      * Data awal role→permission, di-key berdasarkan NAMA role.
      * Setelah seed, komposisi ini dikelola lewat UI, bukan kode.
+     *
+     * Hanya tiga role bawaan, semuanya memakai permission yang sudah
+     * ada di Permission::catalog() (tidak ada permission baru):
+     * - Superadmin: semua akses.
+     * - Admin: kelola operasional unit sendiri (ruangan, bank soal,
+     *   agenda, pegawai) tanpa users/roles/units dan tanpa lintas unit.
+     * - Staff: kelola agenda unit sendiri saja.
      */
     public const ROLE_PERMISSIONS = [
         'Superadmin' => [
@@ -24,17 +31,21 @@ class RbacSeeder extends Seeder
             'employees.manage',
             'employees.manage-all',
         ],
-        'Operator Unit' => [
+        'Admin' => [
+            'rooms.manage',
+            'bank-soals.manage',
             'agendas.manage',
             'employees.manage',
         ],
-        'Viewer / Pimpinan' => [],
+        'Staff' => [
+            'agendas.manage',
+        ],
     ];
 
     public const ROLE_DESCRIPTIONS = [
         'Superadmin' => 'Akses penuh semua fitur dan pengaturan sistem.',
-        'Operator Unit' => 'Mengelola agenda dan pegawai pada unit sendiri.',
-        'Viewer / Pimpinan' => 'Hanya melihat data, rekap, dan export.',
+        'Admin' => 'Mengelola ruangan, bank soal, agenda, dan pegawai pada unit sendiri.',
+        'Staff' => 'Mengelola agenda pada unit sendiri.',
     ];
 
     public function run(): void
@@ -57,8 +68,41 @@ class RbacSeeder extends Seeder
         }
 
         $this->migrateLegacyMasterPermission();
+        $this->migrateLegacyRoles();
     }
 
+    /**
+     * Migrasi satu kali: role lama (sebelum penyederhanaan 3 role)
+     * dipetakan ke padanannya, user-nya dipindahkan, lalu role lama
+     * dihapus agar hanya tersisa Superadmin, Admin, Staff.
+     */
+    private function migrateLegacyRoles(): void
+    {
+        $mapping = [
+            'Operator Unit' => 'Admin',
+            'Pengelola Konten' => 'Admin',
+            'Viewer / Pimpinan' => 'Staff',
+        ];
+
+        foreach ($mapping as $oldName => $newName) {
+            $old = Role::where('name', $oldName)->first();
+            $new = Role::where('name', $newName)->first();
+
+            if (! $old || ! $new || $old->id === $new->id) {
+                continue;
+            }
+
+            $userIds = $old->users()->pluck('users.id');
+
+            $old->users()->detach();
+
+            foreach ($userIds as $userId) {
+                $new->users()->syncWithoutDetaching([$userId]);
+            }
+
+            $old->delete();
+        }
+    }
     /**
      * Migrasi satu kali: izin gabungan lama master.manage dipecah menjadi
      * units.manage + rooms.manage + bank-soals.manage pada role yang

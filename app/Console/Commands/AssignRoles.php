@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 class AssignRoles extends Command
 {
     protected $signature = 'users:assign-roles
-                                {--default= : Nama role untuk akun yang belum punya role (default: Operator Unit)}
+                                 {--default= : Nama role untuk akun yang belum punya role (default: Staff)}
                                 {--dry-run : Tampilkan rencana tanpa mengubah data}
                                 {--force : Lewati konfirmasi}';
 
@@ -20,7 +20,7 @@ class AssignRoles extends Command
     {
         $this->call('db:seed', ['--class' => RbacSeeder::class, '--force' => true]);
 
-        $defaultName = (string) ($this->option('default') ?: Role::SYSTEM_OPERATOR);
+        $defaultName = (string) ($this->option('default') ?: Role::SYSTEM_STAFF);
         $defaultRole = Role::where('name', $defaultName)->first();
 
         if (! $defaultRole) {

@@ -47,11 +47,11 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // Akun registrasi mandiri mendapat hak minimal.
+        // Akun registrasi mandiri mendapat role dasar Staff.
         // Dilewati bila tabel role belum di-seed.
-        $viewer = Role::where('name', Role::SYSTEM_VIEWER)->first();
-        if ($viewer) {
-            $user->roles()->attach($viewer);
+        $staff = Role::where('name', Role::SYSTEM_STAFF)->first();
+        if ($staff) {
+            $user->roles()->attach($staff);
         }
 
         Auth::login($user);

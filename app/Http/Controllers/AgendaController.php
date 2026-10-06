@@ -11,6 +11,7 @@ use App\Models\Unit;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Http\Requests\AgendaRequest;
+use App\Support\AgendaTypeAccess;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -36,8 +37,22 @@ class AgendaController extends Controller
         }
 
         $agendas = Agenda::with(['room', 'unit', 'eventLeader'])
+            ->withCount([
+                'employees',
+                'employees as signed_count' => fn ($query) => $query->whereNotNull(
+                    'agenda_employee.signature_image_path',
+                ),
+            ])
             ->latest()
-            ->when($q !== '', fn ($query) => $query->where('title', $operator, "%{$q}%"))
+            ->when($q !== '', function ($query) use ($q, $operator) {
+                // Escape karakter wildcard LIKE agar pencarian nama
+                // agenda ("100%", "a_b", ...) cocok secara literal.
+                $like = '%' . addcslashes($q, '%_\\') . '%';
+                $query->where(function ($query) use ($like, $operator) {
+                    $query->where('title', $operator, $like)
+                        ->orWhere('description', $operator, $like);
+                });
+            })
             ->when($type, fn ($query) => $query->where('type', $type))
             ->when($roomId, fn ($query) => $query->where('room_id', $roomId))
             ->when($unitId, fn ($query) => $query->where('unit_id', $unitId))
@@ -74,11 +89,8 @@ class AgendaController extends Controller
 
     public function searchTypes(Request $request)
     {
-        $types = collect([
-            ["id" => "rapat", "name" => "Rapat"],
-            ["id" => "diklat", "name" => "Diklat"],
-            ["id" => "pelatihan", "name" => "Pelatihan"],
-        ]);
+        $types = collect(AgendaTypeAccess::allowedTypes($request->user()))
+            ->map(fn (array $type) => ["id" => $type["id"], "name" => $type["name"]]);
 
         if ($request->filled("id")) {
             $type = $types->firstWhere("id", (string) $request->id);
@@ -817,17 +829,21 @@ class AgendaController extends Controller
     }
 
     /**
-     * Variabel bantu form agenda: pemegang izin penuh bebas memilih unit
-     * dan tipe; sisanya terkunci ke unit sendiri (unit SDM terkunci ke
-     * tipe rapat, sesuai aturan bisnis yang berlaku).
+     * Variabel bantu form agenda: pemegang izin penuh bebas memilih unit;
+     * pilihan tipe agenda dibatasi permission agendas.type-* milik user
+     * (ditambah aturan unit SDM → hanya rapat untuk izin terbatas).
+     * Bila user hanya memegang satu izin tipe, form otomatis memilihnya.
      */
     private function agendaFormAccess($userUnit): array
     {
         $canManageAll = auth()->user()->can('agendas.manage-all');
+        $allowedTypes = AgendaTypeAccess::allowedTypes(auth()->user());
 
         return [
             'canChooseUnit' => $canManageAll,
-            'typeLockedToRapat' => ! $canManageAll && $userUnit?->name === 'SDM',
+            'allowedTypes' => $allowedTypes,
+            'typeLockedToRapat' => count($allowedTypes) === 1
+                && ($allowedTypes[0]['id'] ?? null) === 'rapat',
         ];
     }
 

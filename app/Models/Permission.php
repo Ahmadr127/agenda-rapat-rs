@@ -26,6 +26,9 @@ class Permission extends Model
             'bank-soals.manage' => ['label' => 'Tulis data bank soal', 'group' => 'bank soal'],
             'agendas.manage' => ['label' => 'Kelola agenda unit sendiri', 'group' => 'agenda'],
             'agendas.manage-all' => ['label' => 'Kelola agenda semua unit', 'group' => 'agenda'],
+            'agendas.type-rapat' => ['label' => 'Buat agenda tipe Rapat', 'group' => 'tipe agenda'],
+            'agendas.type-diklat' => ['label' => 'Buat agenda tipe Diklat', 'group' => 'tipe agenda'],
+            'agendas.type-pelatihan' => ['label' => 'Buat agenda tipe Pelatihan', 'group' => 'tipe agenda'],
             'employees.manage' => ['label' => 'Kelola pegawai unit sendiri', 'group' => 'pegawai'],
             'employees.manage-all' => ['label' => 'Kelola pegawai semua unit', 'group' => 'pegawai'],
         ];

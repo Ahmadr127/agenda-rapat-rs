@@ -50,7 +50,7 @@
             </div>
 
             {{-- Navigation --}}
-            <nav class="flex-1 overflow-y-auto scrollbar-hide px-3 py-6 space-y-1.5">
+            <nav class="flex-1 overflow-y-auto sidebar-scroll px-3 py-6 space-y-1.5">
                 <p x-show="sidebarOpen"
                     class="px-3 mb-3 text-[10px] font-bold text-white/30 uppercase tracking-[0.15em]">Menu Utama</p>
 
@@ -195,43 +195,6 @@
                 @endcan
             </nav>
 
-            {{-- User Section --}}
-            <div class="flex-shrink-0 border-t border-white/10 p-3">
-                <a href="{{ route('profile.edit') }}"
-                    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                              {{ request()->routeIs('profile.*') ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/10 hover:text-white' }}">
-                    <div
-                        class="w-9 h-9 rounded-xl bg-gradient-to-br from-secondary/80 to-secondary flex items-center justify-center flex-shrink-0 text-white text-sm font-bold">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </div>
-                    <div x-show="sidebarOpen" class="overflow-hidden min-w-0">
-                        @php $employee = Auth::user()->employee; @endphp
-                        <p class="text-sm font-semibold text-white truncate">
-                            {{ $employee?->full_name ?? Auth::user()->name }}
-                        </p>
-                        <p class="text-[11px] text-white/40 truncate">
-                            {{ $employee?->job_position ?? Auth::user()->email }}
-                        </p>
-                    </div>
-                </a>
-
-                <form method="POST" action="{{ route('logout') }}" class="mt-1.5">
-                    @csrf
-                    <button type="submit"
-                        class="group flex items-center gap-3 px-3 py-2.5 rounded-xl w-full text-white/50 hover:bg-rose-500/15 hover:text-rose-300 transition-all duration-200">
-                        <div
-                            class="w-9 h-9 rounded-xl bg-white/5 group-hover:bg-rose-500/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                            </svg>
-                        </div>
-                        <span x-show="sidebarOpen" class="text-sm font-semibold">Keluar</span>
-                    </button>
-                </form>
-            </div>
-
             {{-- Collapse Toggle (Desktop only) --}}
             <button @click="sidebarOpen = !sidebarOpen"
                 class="hidden lg:flex absolute -right-3 top-20 w-6 h-6 rounded-full bg-white shadow-lg shadow-gray-200/50 border border-gray-100 items-center justify-center text-gray-400 hover:text-primary transition-colors z-50">
@@ -267,6 +230,38 @@
 
                 {{-- Right Actions --}}
                 <div class="flex items-center gap-3">
+                    @php $topbarEmployee = Auth::user()->employee; @endphp
+                    <a href="{{ route('profile.edit') }}"
+                        class="flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-2xl hover:bg-gray-100 transition-colors
+                                  {{ request()->routeIs('profile.*') ? 'bg-gray-100' : '' }}">
+                        <div
+                            class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-700 flex items-center justify-center flex-shrink-0 text-white text-sm font-bold">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        </div>
+                        <div class="hidden sm:block text-left leading-tight min-w-0">
+                            <p class="text-sm font-bold text-gray-800 truncate max-w-[160px]">
+                                {{ $topbarEmployee?->full_name ?? Auth::user()->name }}
+                            </p>
+                            <p class="text-[11px] text-gray-400 truncate max-w-[160px]">
+                                {{ $topbarEmployee?->job_position ?? Auth::user()->email }}
+                            </p>
+                        </div>
+                    </a>
+
+                    <span class="w-px h-8 bg-gray-200"></span>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" title="Keluar"
+                            class="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-rose-50 text-rose-600 text-sm font-bold hover:bg-rose-100 active:scale-[0.98] transition-all duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                            </svg>
+                            <span class="hidden sm:inline">Keluar</span>
+                        </button>
+                    </form>
                 </div>
             </header>
 
@@ -308,6 +303,25 @@
         }
         .scrollbar-hide::-webkit-scrollbar {
             display: none;             /* Chrome, Safari, Opera */
+        }
+
+        /* Thin subtle scrollbar for the dark sidebar */
+        .sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.45);
         }
     </style>
 </body>

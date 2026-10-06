@@ -4,6 +4,9 @@
     $presenterLabels = old('presenter_ids') ? [] : (isset($agenda->presenters) ? $agenda->presenters->pluck('full_name')->values()->all() : []);
     $initialPresenterCount = count($presenterSelections);
     $maxPresenters = 10;
+    $allowedTypes = $allowedTypes ?? [];
+    $soleType = count($allowedTypes) === 1 ? $allowedTypes[0]['id'] : null;
+    $soleTypeLabel = count($allowedTypes) === 1 ? $allowedTypes[0]['name'] : null;
 @endphp
 
 <x-app-layout>
@@ -21,25 +24,25 @@
                 <h3 class="text-lg font-bold text-gray-900">Ubah Agenda</h3>
                 <p class="text-sm text-gray-400 mt-0.5">Pilih tipe agenda di bagian atas lalu perbarui seluruh detail yang relevan.</p>
             </div>
-            <div class="p-8" x-data="{ type: '{{ old('type', ($typeLockedToRapat ?? false) ? 'rapat' : $agenda->type) }}', presenterCount: {{ $initialPresenterCount }} }">
+            <div class="p-8" x-data="{ type: '{{ old('type', $soleType ?? $agenda->type) }}', presenterCount: {{ $initialPresenterCount }} }">
                 <form action="{{ route('admin.agendas.update', $agenda) }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
                     @method('PUT')
 
-                    @if($typeLockedToRapat ?? false)
-                        {{-- Tipe dikunci ke Rapat (aturan unit), selector disembunyikan --}}
-                        <input type="hidden" name="type" value="rapat">
+                    @if($soleType)
+                        {{-- Hanya satu izin tipe: otomatis terpilih, selector disembunyikan --}}
+                        <input type="hidden" name="type" value="{{ $soleType }}">
                         <div class="pb-4 border-b border-gray-100">
                             <div class="flex items-center gap-2 rounded-2xl bg-primary/5 border border-primary/20 px-4 py-3">
                                 <svg class="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.75 6.75A2.25 2.25 0 017 4.5h10a2.25 2.25 0 012.25 2.25v10A2.25 2.25 0 0117 19H7a2.25 2.25 0 01-2.25-2.25v-10z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9h7.5M8.25 12h7.5M8.25 15h4.5"/></svg>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-800">Tipe Agenda: <span class="text-primary">Rapat</span></p>
-                                    <p class="text-xs text-gray-400">Unit SDM hanya dapat membuat agenda bertipe Rapat.</p>
+                                    <p class="text-sm font-semibold text-gray-800">Tipe Agenda: <span class="text-primary">{{ $soleTypeLabel }}</span></p>
+                                    <p class="text-xs text-gray-400">Hak akses Anda hanya mencakup tipe {{ $soleTypeLabel }} sehingga otomatis terpilih.</p>
                                 </div>
                             </div>
                         </div>
-                    @else
-                        {{-- Tampilkan semua tipe --}}
+                    @elseif(count($allowedTypes) > 1)
+                        {{-- Pilihan tipe dibatasi permission milik user --}}
                         <div class="pb-4 border-b border-gray-100">
                             <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.75 6.75A2.25 2.25 0 017 4.5h10a2.25 2.25 0 012.25 2.25v10A2.25 2.25 0 0117 19H7a2.25 2.25 0 01-2.25-2.25v-10z"/><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9h7.5M8.25 12h7.5M8.25 15h4.5"/></svg>
@@ -47,20 +50,25 @@
                             </h4>
 
                             <div class="flex gap-4">
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="type" value="rapat" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" required>
-                                    <span class="text-sm font-medium text-gray-700">Rapat</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="type" value="diklat" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
-                                    <span class="text-sm font-medium text-gray-700">Diklat</span>
-                                </label>
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="type" value="pelatihan" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary">
-                                    <span class="text-sm font-medium text-gray-700">Pelatihan</span>
-                                </label>
+                                @foreach($allowedTypes as $allowedType)
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="radio" name="type" value="{{ $allowedType['id'] }}" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" @if($loop->first) required @endif>
+                                        <span class="text-sm font-medium text-gray-700">{{ $allowedType['name'] }}</span>
+                                    </label>
+                                @endforeach
                             </div>
                             <p class="text-xs text-gray-400 mt-2">Mengubah tipe agenda akan menyesuaikan field yang ditampilkan di bawah.</p>
+                            @error('type') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                        </div>
+                    @else
+                        {{-- User tidak memegang izin tipe apa pun --}}
+                        <div class="pb-4 border-b border-gray-100">
+                            <div class="flex items-center gap-2 rounded-2xl bg-rose-50 border border-rose-200 px-4 py-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-rose-600">Tidak ada tipe agenda yang dapat dipilih</p>
+                                    <p class="text-xs text-gray-400">Akun Anda tidak memiliki izin tipe agenda. Hubungi administrator.</p>
+                                </div>
+                            </div>
                             @error('type') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                         </div>
                     @endif

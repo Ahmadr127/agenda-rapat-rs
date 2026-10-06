@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class RbacSeeder extends Seeder
 {
@@ -18,6 +19,10 @@ class RbacSeeder extends Seeder
      * - Admin: kelola operasional unit sendiri (ruangan, bank soal,
      *   agenda, pegawai) tanpa users/roles/units dan tanpa lintas unit.
      * - Staff: kelola agenda unit sendiri saja.
+     *
+     * Ketiga role memegang seluruh izin tipe agenda
+     * (agendas.type-*) agar perilaku lama tetap jalan; pembatasan
+     * tipe per role/unit dilakukan lewat UI Role & Izin.
      */
     public const ROLE_PERMISSIONS = [
         'Superadmin' => [
@@ -28,6 +33,9 @@ class RbacSeeder extends Seeder
             'bank-soals.manage',
             'agendas.manage',
             'agendas.manage-all',
+            'agendas.type-rapat',
+            'agendas.type-diklat',
+            'agendas.type-pelatihan',
             'employees.manage',
             'employees.manage-all',
         ],
@@ -35,10 +43,16 @@ class RbacSeeder extends Seeder
             'rooms.manage',
             'bank-soals.manage',
             'agendas.manage',
+            'agendas.type-rapat',
+            'agendas.type-diklat',
+            'agendas.type-pelatihan',
             'employees.manage',
         ],
         'Staff' => [
             'agendas.manage',
+            'agendas.type-rapat',
+            'agendas.type-diklat',
+            'agendas.type-pelatihan',
         ],
     ];
 
@@ -69,6 +83,40 @@ class RbacSeeder extends Seeder
 
         $this->migrateLegacyMasterPermission();
         $this->migrateLegacyRoles();
+        $this->ensureAgendaTypePermissions();
+    }
+
+    /**
+     * Backfill satu kali untuk database lama: izin tipe agenda
+     * (agendas.type-*) diperkenalkan setelah role kustom dibuat lewat
+     * UI. Setiap role yang sudah memegang agendas.manage diberi
+     * ketiga izin tipe TANPA melepas izin lain, agar perilaku lama
+     * (boleh pilih semua tipe) tetap jalan. Pembatasan tipe per role
+     * selanjutnya dikelola lewat UI Role & Izin.
+     */
+    private function ensureAgendaTypePermissions(): void
+    {
+        $typeKeys = ['agendas.type-rapat', 'agendas.type-diklat', 'agendas.type-pelatihan'];
+
+        $typeIds = Permission::whereIn('key', $typeKeys)->pluck('id');
+
+        if ($typeIds->isEmpty()) {
+            return;
+        }
+
+        $manageId = Permission::where('key', 'agendas.manage')->value('id');
+
+        if (! $manageId) {
+            return;
+        }
+
+        $roleIds = DB::table('permission_role')
+            ->where('permission_id', $manageId)
+            ->pluck('role_id');
+
+        foreach (Role::whereIn('id', $roleIds)->get() as $role) {
+            $role->permissions()->syncWithoutDetaching($typeIds);
+        }
     }
 
     /**

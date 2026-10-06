@@ -105,6 +105,8 @@
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Ruangan</th>
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Unit</th>
             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Pimpinan Agenda</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Tipe</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Kehadiran</th>
             <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider">Aksi</th>
         </x-slot>
 
@@ -120,6 +122,28 @@
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->room->room_name ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->unit?->name ?? '-' }}</td>
                             <td class="px-6 py-4 text-sm text-gray-500">{{ $agenda->eventLeader?->full_name ?? '-' }}</td>
+                            <td class="px-6 py-4">
+                                @php
+                                    $typeBadge = ['rapat' => 'bg-blue-50 text-blue-600', 'diklat' => 'bg-violet-50 text-violet-600', 'pelatihan' => 'bg-amber-50 text-amber-600'][$agenda->type] ?? 'bg-gray-100 text-gray-500';
+                                @endphp
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold {{ $typeBadge }}">{{ ucfirst($agenda->type) }}</span>
+                            </td>
+                            @php
+                                $attendTotal = $agenda->employees_count ?? 0;
+                                $attendSigned = $agenda->signed_count ?? 0;
+                                $attendCell = $attendTotal === 0
+                                    ? 'bg-slate-100/60'
+                                    : ($attendSigned >= $attendTotal ? 'bg-emerald-50/60' : ($attendSigned > 0 ? 'bg-amber-50/60' : 'bg-rose-50/60'));
+                                $attendPill = $attendTotal === 0
+                                    ? 'bg-gray-100 text-gray-400'
+                                    : ($attendSigned >= $attendTotal ? 'bg-emerald-100/70 text-emerald-700' : ($attendSigned > 0 ? 'bg-amber-100/70 text-amber-700' : 'bg-rose-100/70 text-rose-600'));
+                            @endphp
+                            <td class="px-6 py-4 {{ $attendCell }}" title="{{ $attendSigned }} sudah absen dari {{ $attendTotal }} peserta">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold {{ $attendPill }}">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {{ $attendSigned }} hadir
+                                </span>
+                            </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-1">
                                     <a href="{{ route('admin.agendas.show', $agenda) }}" class="p-2 rounded-xl hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition-colors" title="Detail">
@@ -142,7 +166,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-12 text-center">
+                            <td colspan="11" class="px-6 py-12 text-center">
                                 <div class="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
                                 </div>

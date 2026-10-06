@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Support\AgendaTypeAccess;
 
 class AgendaRequest extends FormRequest
 {
@@ -43,7 +44,14 @@ class AgendaRequest extends FormRequest
             "unit_id" => "required|exists:units,id",
             "event_leader_id" => "required|exists:employees,id",
             "room_id" => "required|exists:rooms,id",
-            "type" => "required|in:diklat,pelatihan,rapat",
+            // Tipe dibatasi permission agendas.type-* milik user
+            // (ditambah aturan unit SDM → hanya rapat untuk izin
+            // terbatas). Daftar izin kosong berarti tidak ada tipe
+            // yang boleh dipilih sehingga validasi selalu gagal.
+            "type" => [
+                "required",
+                Rule::in(AgendaTypeAccess::allowedTypeIds($this->user()) ?: ['__no_allowed_type__']),
+            ],
             "bank_soal_id" =>
                 "nullable|required_if:type,diklat|required_if:type,pelatihan|exists:bank_soals,id",
             "presenter_ids" => "nullable|array",
@@ -66,33 +74,12 @@ class AgendaRequest extends FormRequest
     }
 
     /**
-     * Aturan bisnis unit SDM (hanya boleh tipe rapat) ditegakkan di
-     * server, bukan sekadar disembunyikan di form.
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            if ($this->user()->can('agendas.manage-all')) {
-                return;
-            }
-
-            $unitName = $this->user()->employee?->unit?->name;
-
-            if ($unitName === 'SDM' && $this->input('type') !== 'rapat') {
-                $validator->errors()->add(
-                    'type',
-                    'Unit SDM hanya dapat membuat agenda bertipe Rapat.',
-                );
-            }
-        });
-    }
-
-    /**
      * Pesan error validasi dalam Bahasa Indonesia.
      */
     public function messages(): array
     {
         return [
+            "type.in" => "Tipe agenda tidak diizinkan untuk akun Anda.",
             "letter_file.max" => "Surat undangan terlalu besar. Maksimal 2 MB.",
             "material_file.max" => "Materi terlalu besar. Maksimal 2 MB.",
             "letter_file.mimes" => "Surat undangan harus berformat PDF.",

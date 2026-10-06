@@ -1,6 +1,6 @@
 @props(['agenda'])
 
-<div class="bg-gradient-to-br from-primary to-primary-700 text-white px-6 pt-8 pb-5 rounded-b-3xl shadow-lg">
+<div class="bg-gradient-to-br from-primary to-primary-700 text-white px-5 md:px-8 pt-8 pb-6 shadow-lg">
     <div class="flex items-center justify-between mb-3">
         <a href="{{ route('home') }}"
             class="inline-flex items-center gap-1.5 text-primary-100/80 text-[10px] md:text-xs font-medium hover:text-white transition">

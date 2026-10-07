@@ -156,15 +156,6 @@ class BankSoalController extends Controller
             ->with('success', 'Bank soal berhasil ditambahkan.');
     }
 
-    public function show(BankSoal $bankSoal)
-    {
-        Gate::authorize('view', $bankSoal);
-
-        $bankSoal->load('questions');
-
-        return view('admin.bank-soals.show', compact('bankSoal'));
-    }
-
     public function edit(BankSoal $bankSoal)
     {
         Gate::authorize('update', $bankSoal);

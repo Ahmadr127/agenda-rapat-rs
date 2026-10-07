@@ -103,20 +103,14 @@ class BankSoalTest extends TestCase
         $response->assertSessionHasErrors();
     }
 
-    public function test_show_displays_bank_soal_with_questions(): void
+    public function test_show_route_is_removed(): void
     {
         $user = User::factory()->create();
         $bankSoal = BankSoal::factory()->create(['title' => 'Soal Biologi']);
-        Question::factory()->create([
-            'bank_soal_id' => $bankSoal->id,
-            'question_text' => 'Apa fungsi mitokondria?',
-        ]);
 
-        $response = $this->actingAs($user)->get(route('admin.bank-soals.show', $bankSoal));
+        $response = $this->actingAs($user)->get('/admin/bank-soals/'.$bankSoal->id);
 
-        $response->assertOk();
-        $response->assertSee('Soal Biologi');
-        $response->assertSee('Apa fungsi mitokondria?');
+        $response->assertNotFound();
     }
 
     public function test_edit_page_is_displayed(): void

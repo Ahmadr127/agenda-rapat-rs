@@ -2,6 +2,7 @@
     'paginator',
     'perPage' => 10,
     'perPageOptions' => [10, 20, 50, 100],
+    'rounded' => 'rounded-3xl',
 ])
 
 @php
@@ -13,7 +14,7 @@
     $count = $paginator->count();
 @endphp
 
-<div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
+<div class="bg-white {{ $rounded }} border border-gray-100 overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full">
             <thead class="bg-primary-700 text-white">

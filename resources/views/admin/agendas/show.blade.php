@@ -11,7 +11,7 @@
     </x-slot>
 
     <div class="space-y-6"
-        x-data="{ showSignatureModal: false, signatureName: '', signatureUrl: '', showImageModal: false, imageUrl: '', currentImageIndex: 0 }">
+        x-data="{ showImageModal: false, imageUrl: '', currentImageIndex: 0 }">
 
         {{-- ===== HEADER CARD ===== --}}
         <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
@@ -209,7 +209,7 @@
                             Export CSV
                         </a>
                         @if($agenda->bankSoal)
-                            <a href="{{ route('admin.bank-soals.show', $agenda->bankSoal) }}"
+                            <a href="{{ route('admin.bank-soals.edit', $agenda->bankSoal) }}"
                                 class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-violet-50 text-violet-600 text-sm font-bold hover:bg-violet-100 active:scale-[0.98] transition-all duration-200">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -397,7 +397,7 @@
                                     <td class="px-6 py-3.5 text-center">
                                         @if($employee->pivot->signature_image_path)
                                             <button
-                                                @click="signatureName = '{{ addslashes($employee->full_name) }}'; signatureUrl = '{{ Storage::url($employee->pivot->signature_image_path) }}'; showSignatureModal = true"
+                                                @click="$dispatch('open-signature-preview', { name: '{{ addslashes($employee->full_name) }}', url: '{{ Storage::url($employee->pivot->signature_image_path) }}' })"
                                                 class="inline-block overflow-hidden hover:border-primary-300 transition-colors cursor-pointer group"
                                                 title="Lihat tanda tangan {{ $employee->full_name }}">
                                                 <img src="{{ Storage::url($employee->pivot->signature_image_path) }}"
@@ -549,45 +549,8 @@
             </div>
         </div>
 
-        {{-- ===== SIGNATURE LIGHTBOX MODAL ===== --}}
-        <template x-teleport="body">
-            <div x-show="showSignatureModal" x-cloak x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-                @click.self="showSignatureModal = false" @keydown.escape.window="showSignatureModal = false">
-                <div x-show="showSignatureModal" x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                    class="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden" @click.stop>
-                    <div class="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-base font-bold text-gray-900">Tanda Tangan</h3>
-                            <p class="text-sm text-gray-400 mt-0.5" x-text="signatureName"></p>
-                        </div>
-                        <button @click="showSignatureModal = false"
-                            class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="p-6">
-                        <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50/50">
-                            <img :src="signatureUrl" :alt="'Tanda tangan ' + signatureName"
-                                class="w-full h-48 object-contain">
-                        </div>
-                    </div>
-                    <div class="px-6 pb-6">
-                        <button @click="showSignatureModal = false"
-                            class="w-full px-4 py-2.5 rounded-2xl bg-gray-100 text-gray-700 text-sm font-semibold hover:bg-gray-200 active:scale-[0.98] transition-all duration-200">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </template>
+        {{-- ===== SIGNATURE LIGHTBOX MODAL (komponen bersama: klik kanan nonaktif) ===== --}}
+        <x-signature-preview-modal />
 
         {{-- ===== IMAGE LIGHTBOX MODAL ===== --}}
         <template x-teleport="body">

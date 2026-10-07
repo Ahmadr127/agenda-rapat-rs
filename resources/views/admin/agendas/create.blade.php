@@ -5,6 +5,9 @@
     $allowedTypes = $allowedTypes ?? [];
     $soleType = count($allowedTypes) === 1 ? $allowedTypes[0]['id'] : null;
     $soleTypeLabel = count($allowedTypes) === 1 ? $allowedTypes[0]['name'] : null;
+    // Default dinamis: old() dulu (setelah validasi gagal), lalu tipe satu-satunya,
+    // lalu opsi pertama yang diizinkan agar satu radio selalu terpilih.
+    $defaultType = old('type', $soleType ?? ($allowedTypes[0]['id'] ?? ''));
 @endphp
 
 <x-app-layout>
@@ -22,7 +25,7 @@
                 <h3 class="text-lg font-bold text-gray-900">Buat Agenda Baru</h3>
                 <p class="text-sm text-gray-400 mt-0.5">Pilih tipe agenda terlebih dahulu, lalu lengkapi form sesuai kebutuhan.</p>
             </div>
-            <div class="p-8" x-data="{ type: '{{ old('type', $soleType ?? '') }}', presenterCount: {{ $initialPresenterCount }} }">
+            <div class="p-8" x-data="{ type: '{{ $defaultType }}', presenterCount: {{ $initialPresenterCount }} }">
                 <form action="{{ route('admin.agendas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
 
@@ -50,7 +53,7 @@
                             <div class="flex gap-4">
                                 @foreach($allowedTypes as $allowedType)
                                     <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="type" value="{{ $allowedType['id'] }}" x-model="type" class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" @if($loop->first) required @endif>
+                                        <input type="radio" name="type" value="{{ $allowedType['id'] }}" x-model="type" @checked($defaultType === $allowedType['id']) class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" @if($loop->first) required @endif>
                                         <span class="text-sm font-medium text-gray-700">{{ $allowedType['name'] }}</span>
                                     </label>
                                 @endforeach
@@ -106,15 +109,15 @@
 
                                 <div>
                                     <label for="event_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Mulai</label>
-                                    <input type="time" name="event_time" id="event_time" value="{{ old('event_time') }}" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" required>
+                                    <input type="time" name="event_time" id="event_time" value="{{ old('event_time') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" required>
                                     @error('event_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
 
                                 <template x-if="type === 'diklat' || type === 'pelatihan'">
                                     <div>
                                         <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>
-                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
-                                        <p class="text-xs text-gray-400 mt-1">Wajib diisi untuk agenda diklat dan pelatihan.</p>
+                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
+                                        <p class="text-xs text-gray-400 mt-1">Wajib diisi untuk agenda diklat dan pelatihan (format 24 jam) dan harus setelah pukul mulai.</p>
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
@@ -122,7 +125,7 @@
                                 <template x-if="type === 'rapat'">
                                     <div>
                                         <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>
-                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
+                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
                                         <p class="text-xs text-gray-400 mt-1">Opsional untuk agenda rapat, tanpa batasan.</p>
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
@@ -239,7 +242,10 @@
                                 <div>
                                     <label for="letter_file" class="block text-sm font-semibold text-gray-700 mb-2">Surat Undangan</label>
                                     <input type="file" name="letter_file" id="letter_file" accept=".pdf" onchange="validateAgendaFile(this, 'letter_file_error')" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-                                    <p class="text-xs text-gray-400 mt-1">Format PDF, maksimal 2MB.</p>
+                                    <div class="flex items-center justify-between gap-2 mt-1">
+                                        <p class="text-xs text-gray-400">Format PDF, maksimal 2MB.</p>
+                                        <button type="button" onclick="clearAgendaFile('letter_file', 'letter_file_error')" class="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline flex-shrink-0">Hapus lampiran</button>
+                                    </div>
                                     <p id="letter_file_error" class="hidden text-rose-500 text-xs font-medium mt-1.5"></p>
                                     @error('letter_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
@@ -249,7 +255,10 @@
                                         <span x-text="'Materi ' + (type === 'diklat' ? 'Diklat' : (type === 'pelatihan' ? 'Pelatihan' : 'Rapat'))"></span>
                                     </label>
                                     <input type="file" name="material_file" id="material_file" accept=".pdf" onchange="validateAgendaFile(this, 'material_file_error')" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-                                    <p class="text-xs text-gray-400 mt-1">Format PDF, maksimal 2MB.</p>
+                                    <div class="flex items-center justify-between gap-2 mt-1">
+                                        <p class="text-xs text-gray-400">Format PDF, maksimal 2MB.</p>
+                                        <button type="button" onclick="clearAgendaFile('material_file', 'material_file_error')" class="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline flex-shrink-0">Hapus lampiran</button>
+                                    </div>
                                     <p id="material_file_error" class="hidden text-rose-500 text-xs font-medium mt-1.5"></p>
                                     @error('material_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
@@ -269,6 +278,15 @@
                                         err.classList.remove('hidden');
                                         input.value = '';
                                     } else {
+                                        err.textContent = '';
+                                        err.classList.add('hidden');
+                                    }
+                                }
+                                function clearAgendaFile(inputId, errorId) {
+                                    var input = document.getElementById(inputId);
+                                    if (input) input.value = '';
+                                    var err = document.getElementById(errorId);
+                                    if (err) {
                                         err.textContent = '';
                                         err.classList.add('hidden');
                                     }

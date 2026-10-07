@@ -12,6 +12,36 @@ use Illuminate\View\View;
 
 class RoleController extends Controller
 {
+    public function search(Request $request)
+    {
+        if ($request->filled('id')) {
+            $role = Role::find($request->id);
+
+            return response()->json([
+                'items' => $role ? [['id' => $role->id, 'name' => $role->name]] : [],
+                'has_more' => false,
+            ]);
+        }
+
+        $search = trim((string) $request->input('q'));
+
+        $query = Role::query()->orderBy('name');
+
+        if ($search !== '') {
+            $operator = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
+            $query->where('name', $operator, "%{$search}%");
+        }
+
+        $roles = $query->simplePaginate(10);
+
+        return response()->json([
+            'items' => collect($roles->items())
+                ->map(fn (Role $role) => ['id' => $role->id, 'name' => $role->name])
+                ->values(),
+            'has_more' => $roles->hasMorePages(),
+        ]);
+    }
+
     public function index(): View
     {
         Gate::authorize('viewAny', Role::class);

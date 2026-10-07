@@ -13,7 +13,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-        @click.self="show = false" @keydown.escape.window="show = false">
+        @click.self="show = false" @keydown.escape.window="show = false" @contextmenu.prevent>
         <div x-show="show"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
@@ -37,7 +37,9 @@
             <div class="p-6">
                 <div class="border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50/50">
                     <img :src="previewUrl" :alt="'Tanda tangan ' + previewName"
-                        class="w-full h-48 object-contain bg-white rounded-xl">
+                        draggable="false" @contextmenu.prevent @dragstart.prevent
+                        class="w-full h-48 object-contain bg-white rounded-xl select-none pointer-events-auto"
+                        style="-webkit-touch-callout: none; -webkit-user-select: none; user-select: none;">
                 </div>
             </div>
             <div class="px-6 pb-6">

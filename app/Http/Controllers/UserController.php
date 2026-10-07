@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\Role;
+use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,12 +23,14 @@ class UserController extends Controller
         Gate::authorize('viewAny', User::class);
 
         $q = trim((string) $request->input('q'));
+        $roleId = $request->input('role_id');
+        $unitId = $request->input('unit_id');
         $perPage = (int) $request->input('per_page', 10);
         if (! in_array($perPage, [10, 20, 50, 100], true)) {
             $perPage = 10;
         }
 
-        $users = User::with(['employee', 'roles'])
+        $users = User::with(['employee.unit', 'roles'])
             ->orderBy('name')
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($query) use ($q) {
@@ -36,10 +39,15 @@ class UserController extends Controller
                         ->orWhere('email', 'like', "%{$q}%");
                 });
             })
+            ->when($roleId, fn ($query) => $query->whereHas('roles', fn ($query) => $query->where('roles.id', $roleId)))
+            ->when($unitId, fn ($query) => $query->whereHas('employee', fn ($query) => $query->where('unit_id', $unitId)))
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.users.index', compact('users', 'q', 'perPage'));
+        $selectedRole = $roleId ? Role::find($roleId) : null;
+        $selectedUnit = $unitId ? Unit::find($unitId) : null;
+
+        return view('admin.users.index', compact('users', 'q', 'perPage', 'selectedRole', 'selectedUnit'));
     }
 
     public function create(): View

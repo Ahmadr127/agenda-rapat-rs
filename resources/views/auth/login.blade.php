@@ -21,15 +21,8 @@
         <div class="relative z-10 flex flex-col items-center justify-center w-full px-12 xl:px-20">
             {{-- RS AZRA Logo --}}
             <div class="mb-8">
-                <div class="w-24 h-24 xl:w-28 xl:h-28 rounded-3xl bg-white/15 backdrop-blur-md border border-white/20 shadow-2xl flex items-center justify-center">
-                    <svg class="w-14 h-14 xl:w-16 xl:h-16 text-white" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {{-- Medical cross --}}
-                        <rect x="24" y="8" width="16" height="48" rx="4" fill="currentColor" opacity="0.9"/>
-                        <rect x="8" y="24" width="48" height="16" rx="4" fill="currentColor" opacity="0.9"/>
-                        {{-- Inner highlight --}}
-                        <rect x="27" y="11" width="10" height="42" rx="2" fill="currentColor" opacity="0.3"/>
-                        <rect x="11" y="27" width="42" height="10" rx="2" fill="currentColor" opacity="0.3"/>
-                    </svg>
+                <div class="w-24 h-24 xl:w-28 xl:h-28 rounded-3xl bg-white shadow-2xl flex items-center justify-center overflow-hidden p-3">
+                    <img src="{{ asset('images/logo-tab.png') }}" alt="Logo RS Azra" class="w-full h-full object-contain">
                 </div>
             </div>
 
@@ -93,7 +86,8 @@
         <div class="w-full max-w-md">
             {{-- Mobile logo --}}
             <div class="lg:hidden mb-8 text-center">
-                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-primary to-secondary">
+                <img src="{{ asset('images/logo-tab.png') }}" alt="Logo RS Azra" class="h-16 w-auto mx-auto object-contain">
+                <div class="inline-flex items-center gap-2 px-4 py-2 mt-3 rounded-2xl bg-gradient-to-r from-primary to-secondary">
                     <span class="text-white font-extrabold text-xl">D-ASSA</span>
                 </div>
             </div>

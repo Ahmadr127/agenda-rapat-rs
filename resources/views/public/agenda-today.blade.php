@@ -86,14 +86,7 @@
                                     </p>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-extrabold uppercase tracking-wide {{ $typeBadge }}">{{ ucfirst($agenda->type) }}</span>
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-bold bg-emerald-50 text-emerald-600">
-                                            <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                                            {{ $agenda->signed_count }} hadir
-                                        </span>
-                                    </div>
-                                    <h2 class="text-[13px] md:text-[15px] font-extrabold text-slate-900 leading-snug mt-1.5 group-hover:text-primary transition-colors">{{ $agenda->title }}</h2>
+                                    <h2 class="text-[13px] md:text-[15px] font-extrabold text-slate-900 leading-snug group-hover:text-primary transition-colors">{{ $agenda->title }}</h2>
                                     <div class="mt-2 space-y-1">
                                         <p class="flex items-center gap-1.5 text-[10px] md:text-xs text-slate-500 font-medium">
                                             <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21"/></svg>
@@ -105,6 +98,13 @@
                                                 <span class="truncate">{{ $agenda->eventLeader->full_name }}</span>
                                             </p>
                                         @endif
+                                    </div>
+                                    <div class="mt-2.5 flex items-center justify-end gap-1.5 flex-wrap">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-extrabold uppercase tracking-wide {{ $typeBadge }}">{{ ucfirst($agenda->type) }}</span>
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-bold bg-emerald-50 text-emerald-600">
+                                            <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                            {{ $agenda->signed_count }} hadir
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="flex-shrink-0 self-center">

@@ -221,6 +221,7 @@ class AgendaController extends Controller
         $agendaData = array_merge(
             $agendaData,
             $this->storeAgendaFiles($request, $agenda, true),
+            $this->removedAgendaFiles($request, $agenda),
         );
 
         $oldType = $agenda->type;
@@ -432,12 +433,27 @@ class AgendaController extends Controller
             "photos" => "Dokumentasi Foto",
         ];
 
-        // Merge all PDFs using FPDI — every page gets the same header
+        // Merge all PDFs using FPDI — every page gets the same header.
+        // File lampiran (surat/materi) yang memakai kompresi xref modern
+        // tidak didukung parser gratis FPDI → dilewati dengan halaman
+        // pemberitahuan, bukan 500.
         $merger = new \setasign\Fpdi\Fpdi();
         $merger->SetAutoPageBreak(false);
+        $skippedFiles = [];
 
         foreach ($pdfFiles as $fileInfo) {
-            $pageCount = $merger->setSourceFile($fileInfo["path"]);
+            try {
+                $pageCount = $merger->setSourceFile($fileInfo["path"]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Export PDF agenda dilewati (tidak dapat diparsing FPDI)', [
+                    'agenda_id' => $agenda->id,
+                    'type' => $fileInfo['type'] ?? null,
+                    'path' => $fileInfo['path'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
+                $skippedFiles[] = $fileInfo;
+                continue;
+            }
             for ($p = 1; $p <= $pageCount; $p++) {
                 $tpl = $merger->importPage($p);
                 $size = $merger->getTemplateSize($tpl);
@@ -532,6 +548,27 @@ class AgendaController extends Controller
                     $scaledWidth,
                     $scaledHeight,
                 );
+            }
+        }
+
+        // Halaman pemberitahuan untuk lampiran yang tidak bisa digabung.
+        // FPDF hanya mendukung Latin-1 → transliterasi secukupnya.
+        if ($skippedFiles !== []) {
+            $merger->AddPage("P", [210, 297]);
+            $merger->SetFont("Helvetica", "B", 12);
+            $merger->SetTextColor(0, 0, 0);
+            $merger->SetXY(12, 12);
+            $merger->Cell(186, 7, "Lampiran tidak dapat digabungkan", 0, 1, "L");
+            $merger->SetFont("Helvetica", "", 10);
+            $merger->SetTextColor(80, 80, 80);
+            $merger->MultiCell(186, 5, iconv("UTF-8", "ISO-8859-1//TRANSLIT", "File berikut memakai kompresi PDF modern sehingga tidak dapat disisipkan otomatis. Unduh manual dari halaman detail agenda:"));
+            $merger->Ln(3);
+            foreach ($skippedFiles as $skipped) {
+                $label = $subHeaders[$skipped["type"] ?? ""] ?? ($skipped["type"] ?? "Lampiran");
+                $merger->SetFont("Helvetica", "B", 10);
+                $merger->SetTextColor(0, 0, 0);
+                $merger->Cell(6, 6, chr(149), 0, 0, "L");
+                $merger->Cell(180, 6, iconv("UTF-8", "ISO-8859-1//TRANSLIT", (string) $label), 0, 1, "L");
             }
         }
 
@@ -751,7 +788,7 @@ class AgendaController extends Controller
     private function buildAgendaData(array $validated): array
     {
         $agendaData = collect($validated)
-            ->except(["letter_file", "material_file", "presenter_ids"])
+            ->except(["letter_file", "material_file", "presenter_ids", "remove_letter_file", "remove_material_file"])
             ->toArray();
 
         if ($agendaData["type"] === "rapat") {
@@ -799,6 +836,28 @@ class AgendaController extends Controller
         }
 
         return $fileData;
+    }
+
+    /**
+     * Hapus lampiran yang dicentang pada form ubah. File baru yang
+     * diunggah selalu menang — penghapusan hanya jalan bila tidak
+     * ada upload pengganti pada field yang sama.
+     */
+    private function removedAgendaFiles(Request $request, Agenda $agenda): array
+    {
+        $removed = [];
+
+        if ($request->boolean('remove_letter_file') && ! $request->hasFile('letter_file') && $agenda->letter_file_path) {
+            Storage::disk('public')->delete($agenda->letter_file_path);
+            $removed['letter_file_path'] = null;
+        }
+
+        if ($request->boolean('remove_material_file') && ! $request->hasFile('material_file') && $agenda->material_file_path) {
+            Storage::disk('public')->delete($agenda->material_file_path);
+            $removed['material_file_path'] = null;
+        }
+
+        return $removed;
     }
 
     private function syncAgendaPresenters(

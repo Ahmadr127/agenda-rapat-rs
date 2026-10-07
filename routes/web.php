@@ -95,7 +95,10 @@ Route::middleware("auth")
             BankSoalController::class,
             "downloadTemplate",
         ])->name("bank-soals.template");
-        Route::resource("bank-soals", BankSoalController::class);
+        Route::resource("bank-soals", BankSoalController::class)->except(['show']);
+        Route::get("roles/search", [RoleController::class, "search"])->name(
+            "roles.search",
+        );
 
         // Account management — pemegang izin users.manage
         Route::middleware('can:users.manage')->group(function () {

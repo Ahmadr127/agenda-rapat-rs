@@ -28,7 +28,30 @@
             :action="route('admin.users.index')"
             :q="$q"
             placeholder="Cari nama, username, atau email..."
-        />
+        >
+            <x-slot name="filters">
+                <div class="w-full sm:w-48">
+                    <x-searchable-select
+                        name="role_id"
+                        search-url="{{ route('admin.roles.search') }}"
+                        :selected-id="$selectedRole?->id"
+                        :selected-label="$selectedRole?->name"
+                        placeholder="Filter role..."
+                        bg-color="bg-white"
+                    />
+                </div>
+                <div class="w-full sm:w-52">
+                    <x-searchable-select
+                        name="unit_id"
+                        search-url="{{ route('admin.units.search') }}"
+                        :selected-id="$selectedUnit?->id"
+                        :selected-label="$selectedUnit?->name"
+                        placeholder="Filter unit..."
+                        bg-color="bg-white"
+                    />
+                </div>
+            </x-slot>
+        </x-search-filter>
     </div>
 
     {{-- Table --}}

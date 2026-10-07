@@ -187,14 +187,6 @@
                                             </span>
                                         </template>
                                         <template x-if="!p.signed_at">
-                                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold bg-emerald-50 text-emerald-600">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                Sudah Hadir
-                                            </span>
-                                        </template>
-                                        <template x-if="!p.signed_at">
                                             <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[10px] md:text-xs font-bold bg-primary text-white shadow-md shadow-primary/25">
                                                 Absen
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">

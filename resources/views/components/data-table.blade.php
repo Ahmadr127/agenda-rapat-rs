@@ -3,6 +3,8 @@
     'perPage' => 10,
     'perPageOptions' => [10, 20, 50, 100],
     'rounded' => 'rounded-3xl',
+    'stickyHeader' => false,
+    'maxHeight' => '65vh',
 ])
 
 @php
@@ -15,9 +17,9 @@
 @endphp
 
 <div class="bg-white {{ $rounded }} border border-gray-100 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-primary-700 text-white">
+    <div class="{{ $stickyHeader ? 'overflow-auto' : 'overflow-x-auto' }}" @if($stickyHeader) style="max-height: {{ $maxHeight }}" @endif>
+        <table class="w-full {{ $stickyHeader ? '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10 [&_thead_th]:bg-primary-700' : '' }}">
+            <thead class="bg-primary-700 text-white {{ $stickyHeader ? 'sticky top-0 z-10 shadow-sm' : '' }}">
                 <tr class="border-b border-gray-100">
                     {{ $header }}
                 </tr>

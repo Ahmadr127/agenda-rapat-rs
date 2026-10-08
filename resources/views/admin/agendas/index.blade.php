@@ -95,7 +95,7 @@
         </form>
     </div>
 
-    <x-data-table :paginator="$agendas" :perPage="$perPage ?? 10" rounded="rounded-xl">
+    <x-data-table :paginator="$agendas" :perPage="$perPage ?? 10" rounded="rounded-xl" :stickyHeader="true" maxHeight="65vh">
         <x-slot name="header">
             <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider w-14">No</th>
             <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider">Judul</th>

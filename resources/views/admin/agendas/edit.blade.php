@@ -132,7 +132,7 @@
                                     <div>
                                         <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>
                                         <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time', $agenda->event_end_time ? \Carbon\Carbon::parse($agenda->event_end_time)->format('H:i') : '') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
-                                        <p class="text-xs text-gray-400 mt-1">Opsional untuk agenda rapat, tanpa batasan.</p>
+                                        <p class="text-xs text-gray-400 mt-1">Opsional untuk agenda rapat, tetapi bila diisi harus setelah pukul mulai.</p>
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
@@ -318,6 +318,46 @@
                                         err.classList.add('hidden');
                                     }
                                 }
+                            </script>
+                            <script>
+                                // Pukul selesai tidak boleh mundur dari pukul mulai (semua tipe agenda).
+                                (function () {
+                                    function syncEndTimeMin() {
+                                        var start = document.getElementById('event_time');
+                                        var end = document.getElementById('event_end_time');
+                                        if (start && end && start.value) end.min = start.value;
+                                    }
+                                    function validateEndTime() {
+                                        var start = document.getElementById('event_time');
+                                        var end = document.getElementById('event_end_time');
+                                        if (!start || !end) return true;
+                                        if (start.value && end.value && end.value <= start.value) {
+                                            end.setCustomValidity('Pukul selesai harus setelah pukul mulai.');
+                                            return false;
+                                        }
+                                        end.setCustomValidity('');
+                                        return true;
+                                    }
+                                    document.addEventListener('input', function (e) {
+                                        if (e.target && (e.target.id === 'event_time' || e.target.id === 'event_end_time')) {
+                                            syncEndTimeMin();
+                                            validateEndTime();
+                                        }
+                                    });
+                                    document.addEventListener('submit', function (e) {
+                                        if (e.target && e.target.matches('form[action*="agendas"]') && !validateEndTime()) {
+                                            e.preventDefault();
+                                            var end = document.getElementById('event_end_time');
+                                            if (end) end.reportValidity();
+                                        }
+                                    }, true);
+                                    // Field dirender Alpine (x-if) setelah init — sinkron awal beberapa kali.
+                                    var tries = 0;
+                                    var t = setInterval(function () {
+                                        syncEndTimeMin();
+                                        if (document.getElementById('event_end_time') || ++tries >= 10) clearInterval(t);
+                                    }, 300);
+                                })();
                             </script>
                         </div>
 

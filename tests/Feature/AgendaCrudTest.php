@@ -115,26 +115,22 @@ class AgendaCrudTest extends TestCase
         $this->assertDatabaseHas('agendas', ['title' => 'Rapat Baru', 'type' => 'rapat']);
     }
 
-    public function test_rapat_agenda_can_store_optional_end_time_without_lock(): void
+    public function test_rapat_agenda_rejects_end_time_before_start_time(): void
     {
         $user = User::factory()->create();
 
-        // Pukul selesai lebih awal dari pukul mulai pun diterima untuk rapat.
+        // Pukul selesai yang lebih awal dari pukul mulai ditolak untuk semua tipe, termasuk rapat.
         $response = $this->actingAs($user)->post(
             route('admin.agendas.store'),
             $this->validRapatData([
-                'title' => 'Rapat Bebas Waktu',
+                'title' => 'Rapat Mundur Waktu',
                 'event_time' => '09:00',
                 'event_end_time' => '08:00',
             ])
         );
 
-        $response->assertRedirect(route('admin.agendas.index'));
-        $this->assertDatabaseHas('agendas', [
-            'title' => 'Rapat Bebas Waktu',
-            'type' => 'rapat',
-            'event_end_time' => '08:00',
-        ]);
+        $response->assertSessionHasErrors('event_end_time');
+        $this->assertDatabaseMissing('agendas', ['title' => 'Rapat Mundur Waktu']);
     }
 
     public function test_diklat_agenda_can_be_stored(): void

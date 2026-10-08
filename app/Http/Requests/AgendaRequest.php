@@ -28,11 +28,11 @@ class AgendaRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Rapat tidak memakai batasan pukul selesai: boleh kosong dan
-        // bila diisi pun tidak dikunci harus setelah pukul mulai.
-        // Diklat/pelatihan tetap wajib dan harus setelah pukul mulai.
+        // Semua tipe: pukul selesai (bila diisi) harus setelah pukul mulai.
+        // Diklat/pelatihan wajib mengisi; rapat opsional tetapi tetap
+        // tidak boleh mundur dari pukul mulai.
         $endTimeRule = $this->input('type') === 'rapat'
-            ? 'nullable|date_format:H:i'
+            ? 'nullable|date_format:H:i|after:event_time'
             : 'nullable|required_if:type,diklat|required_if:type,pelatihan|date_format:H:i|after:event_time';
 
         $rules = [

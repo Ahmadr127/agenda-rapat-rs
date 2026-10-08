@@ -16,8 +16,25 @@
     $count = $paginator->count();
 @endphp
 
+@if($stickyHeader)
+@once
+<style>
+    /* Scrollbar tipis + track transparan agar radius sudut header tidak tertutup kotak */
+    .dt-sticky {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, .35) transparent;
+    }
+    .dt-sticky::-webkit-scrollbar { width: 10px; height: 10px; }
+    .dt-sticky::-webkit-scrollbar-track { background: transparent; }
+    .dt-sticky::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, .3); border-radius: 999px; }
+    .dt-sticky::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, .5); }
+    .dt-sticky::-webkit-scrollbar-corner { background: transparent; }
+</style>
+@endonce
+@endif
+
 <div class="bg-white {{ $rounded }} border border-gray-100 overflow-hidden">
-    <div class="{{ $stickyHeader ? 'overflow-auto' : 'overflow-x-auto' }}" @if($stickyHeader) style="max-height: {{ $maxHeight }}" @endif>
+    <div class="{{ $stickyHeader ? 'overflow-auto dt-sticky' : 'overflow-x-auto' }}" @if($stickyHeader) style="max-height: {{ $maxHeight }}; background: linear-gradient(to bottom, #005c5a 0, #005c5a 40px, #ffffff 40px, #ffffff 100%);" @endif>
         <table class="w-full {{ $stickyHeader ? '[&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10 [&_thead_th]:bg-primary-700' : '' }}">
             <thead class="bg-primary-700 text-white {{ $stickyHeader ? 'sticky top-0 z-10 shadow-sm' : '' }}">
                 <tr class="border-b border-gray-100">

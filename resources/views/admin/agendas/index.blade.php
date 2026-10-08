@@ -125,16 +125,16 @@
                     : ($attendSigned >= $attendTotal ? 'bg-emerald-200 text-emerald-800' : ($attendSigned > 0 ? 'bg-blue-200 text-blue-800' : 'bg-rose-200 text-rose-700'));
             @endphp
             <tr class="group transition-colors hover:bg-primary-50/40 {{ $rowBg }}">
-                <td class="px-3 py-2 text-sm text-gray-400 font-medium">{{ $agendas->firstItem() + $index }}</td>
+                <td class="px-3 py-2 text-sm text-black font-medium">{{ $agendas->firstItem() + $index }}</td>
                 <td class="px-3 py-2">
-                                <a href="{{ route('admin.agendas.show', $agenda) }}" class="text-sm font-semibold text-gray-800 group-hover:text-primary transition-colors">{{ $agenda->title }}</a>
+                                <a href="{{ route('admin.agendas.show', $agenda) }}" class="text-sm font-semibold text-black group-hover:text-primary transition-colors">{{ $agenda->title }}</a>
                             </td>
-                            <td class="px-3 py-2 text-sm text-gray-500 whitespace-pre-wrap">{{ $agenda->description ?? '-' }}</td>
-                            <td class="px-3 py-2 text-sm text-gray-500">{{ $agenda->event_date->translatedFormat('d M Y') }}</td>
-                            <td class="px-3 py-2 text-sm text-gray-500">{{ \Carbon\Carbon::parse($agenda->event_time)->format('H:i') }}@if($agenda->event_end_time) - {{ \Carbon\Carbon::parse($agenda->event_end_time)->format('H:i') }}@else - Selesai @endif</td>
-                            <td class="px-3 py-2 text-sm text-gray-500">{{ $agenda->room->room_name ?? '-' }}</td>
-                            <td class="px-3 py-2 text-sm text-gray-500">{{ $agenda->unit?->name ?? '-' }}</td>
-                            <td class="px-3 py-2 text-sm text-gray-500">{{ $agenda->eventLeader?->full_name ?? '-' }}</td>
+                            <td class="px-3 py-2 text-sm text-black whitespace-pre-wrap">{{ $agenda->description ?? '-' }}</td>
+                            <td class="px-3 py-2 text-sm text-black">{{ $agenda->event_date->translatedFormat('d M Y') }}</td>
+                            <td class="px-3 py-2 text-sm text-black">{{ \Carbon\Carbon::parse($agenda->event_time)->format('H:i') }}@if($agenda->event_end_time) - {{ \Carbon\Carbon::parse($agenda->event_end_time)->format('H:i') }}@else - Selesai @endif</td>
+                            <td class="px-3 py-2 text-sm text-black">{{ $agenda->room->room_name ?? '-' }}</td>
+                            <td class="px-3 py-2 text-sm text-black">{{ $agenda->unit?->name ?? '-' }}</td>
+                            <td class="px-3 py-2 text-sm text-black">{{ $agenda->eventLeader?->full_name ?? '-' }}</td>
                             <td class="px-3 py-2">
                                 @php
                                     $typeBadge = ['rapat' => 'bg-blue-50 text-blue-600', 'diklat' => 'bg-violet-50 text-violet-600', 'pelatihan' => 'bg-amber-50 text-amber-600'][$agenda->type] ?? 'bg-gray-100 text-gray-500';
@@ -173,7 +173,7 @@
                                 <div class="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-2">
                                     <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
                                 </div>
-                                <p class="text-sm text-gray-400">Belum ada agenda</p>
+                                <p class="text-sm text-black">Belum ada agenda</p>
                             </td>
                         </tr>
                     @endforelse

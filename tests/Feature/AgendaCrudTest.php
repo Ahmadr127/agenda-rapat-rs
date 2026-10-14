@@ -655,10 +655,10 @@ class AgendaCrudTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
             $this->validRapatData(),
-            ['letter_file' => UploadedFile::fake()->create('surat.pdf', 2049, 'application/pdf')]
+            ['material_file' => UploadedFile::fake()->create('materi.pdf', 2049, 'application/pdf')]
         ));
 
-        $response->assertSessionHasErrors('letter_file');
+        $response->assertSessionHasErrors('material_file');
         $this->assertDatabaseCount('agendas', 0);
     }
 
@@ -683,7 +683,6 @@ class AgendaCrudTest extends TestCase
         $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
             $this->validRapatData(),
             [
-                'letter_file' => UploadedFile::fake()->create('surat.pdf', 1500, 'application/pdf'),
                 'material_file' => UploadedFile::fake()->create('materi.pdf', 2048, 'application/pdf'),
             ]
         ));

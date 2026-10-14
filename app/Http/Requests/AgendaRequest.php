@@ -56,9 +56,8 @@ class AgendaRequest extends FormRequest
                 "nullable|required_if:type,diklat|required_if:type,pelatihan|exists:bank_soals,id",
             "presenter_ids" => "nullable|array",
             "presenter_ids.*" => "nullable|distinct|exists:employees,id",
-            "letter_file" => "nullable|file|mimes:pdf|max:2048",
+            "letter_number" => "nullable|string|max:100",
             "material_file" => "nullable|file|mimes:pdf|max:2048",
-            "remove_letter_file" => "nullable|boolean",
             "remove_material_file" => "nullable|boolean",
         ];
 
@@ -87,9 +86,8 @@ class AgendaRequest extends FormRequest
             "event_end_time.required_if" => "Pukul selesai wajib diisi untuk agenda diklat dan pelatihan.",
             "event_end_time.date_format" => "Pukul selesai harus dalam format JJ:MM (24 jam).",
             "event_end_time.after" => "Pukul selesai harus setelah pukul mulai (gunakan format 24 jam, mis. mulai 09:32 maka selesai 12:32 bukan 00:32).",
-            "letter_file.max" => "Surat undangan terlalu besar. Maksimal 2 MB.",
             "material_file.max" => "Materi terlalu besar. Maksimal 2 MB.",
-            "letter_file.mimes" => "Surat undangan harus berformat PDF.",
+            "letter_number.max" => "Nomor surat maksimal 100 karakter.",
             "material_file.mimes" => "Materi harus berformat PDF.",
         ];
     }

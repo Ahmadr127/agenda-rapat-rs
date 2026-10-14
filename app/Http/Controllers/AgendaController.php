@@ -11,6 +11,7 @@ use App\Models\Unit;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Http\Requests\AgendaRequest;
+use App\Services\InvitationLetterService;
 use App\Support\AgendaTypeAccess;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -78,13 +79,14 @@ class AgendaController extends Controller
         ));
     }
 
-    public function create()
+    public function create(InvitationLetterService $letters)
     {
         Gate::authorize('create', Agenda::class);
 
         $userUnit = auth()->user()->employee?->unit;
+        $suggestedNumber = $letters->suggestNumber(now());
 
-        return view("admin.agendas.create", compact('userUnit') + $this->agendaFormAccess($userUnit));
+        return view("admin.agendas.create", compact('userUnit', 'suggestedNumber') + $this->agendaFormAccess($userUnit));
     }
 
     public function searchTypes(Request $request)
@@ -124,11 +126,11 @@ class AgendaController extends Controller
         ]);
     }
 
-    public function store(AgendaRequest $request)
+    public function store(AgendaRequest $request, InvitationLetterService $letters)
     {
         $validated = $request->validated();
         $presenterIds = $this->extractPresenterIds($validated);
-        $agendaData = $this->buildAgendaData($validated);
+        $agendaData = $this->buildAgendaData($validated, $letters);
 
         DB::transaction(function () use ($agendaData, $presenterIds, $request) {
             $agenda = Agenda::create($agendaData);
@@ -196,7 +198,7 @@ class AgendaController extends Controller
         );
     }
 
-    public function edit(Agenda $agenda)
+    public function edit(Agenda $agenda, InvitationLetterService $letters)
     {
         Gate::authorize('update', $agenda);
 
@@ -209,15 +211,16 @@ class AgendaController extends Controller
         ]);
 
         $userUnit = auth()->user()->employee?->unit;
+        $suggestedNumber = $agenda->letter_number ?: $letters->suggestNumber($agenda->event_date);
 
-        return view("admin.agendas.edit", compact("agenda", "userUnit") + $this->agendaFormAccess($userUnit));
+        return view("admin.agendas.edit", compact("agenda", "userUnit", "suggestedNumber") + $this->agendaFormAccess($userUnit));
     }
 
-    public function update(AgendaRequest $request, Agenda $agenda)
+    public function update(AgendaRequest $request, Agenda $agenda, InvitationLetterService $letters)
     {
         $validated = $request->validated();
         $presenterIds = $this->extractPresenterIds($validated);
-        $agendaData = $this->buildAgendaData($validated);
+        $agendaData = $this->buildAgendaData($validated, $letters, $agenda);
         $agendaData = array_merge(
             $agendaData,
             $this->storeAgendaFiles($request, $agenda, true),
@@ -377,19 +380,16 @@ class AgendaController extends Controller
         }
 
         // Collect PDF files to merge in order:
-        // Surat Undangan → Materi → Daftar Kehadiran → Notulensi → Dokumentasi
+        // Surat Undangan (otomatis) → Materi → Daftar Kehadiran → Notulensi → Dokumentasi
         $pdfFiles = [];
 
-        if ($agenda->letter_file_path) {
-            $letterPath = Storage::disk("public")->path(
-                $agenda->letter_file_path,
-            );
-            if (
-                file_exists($letterPath) &&
-                strtolower(pathinfo($letterPath, PATHINFO_EXTENSION)) === "pdf"
-            ) {
-                $pdfFiles[] = ["path" => $letterPath, "type" => "letter"];
-            }
+        // Surat undangan otomatis hanya ada untuk agenda rapat.
+        if ($agenda->type === 'rapat') {
+            $invitationPdf = app(InvitationLetterService::class)->toPdf($agenda);
+            $invitationTmp = tempnam(sys_get_temp_dir(), "agenda_invitation_") . ".pdf";
+            file_put_contents($invitationTmp, $invitationPdf->output());
+            $tempPaths[] = $invitationTmp;
+            $pdfFiles[] = ["path" => $invitationTmp, "type" => "letter"];
         }
 
         if ($agenda->material_file_path) {
@@ -583,6 +583,38 @@ class AgendaController extends Controller
             "Content-Type" => "application/pdf",
             "Content-Disposition" => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    /**
+     * Pratinjau HTML surat undangan otomatis.
+     */
+    public function invitationPreview(Agenda $agenda, InvitationLetterService $letters)
+    {
+        Gate::authorize('view', $agenda);
+        abort_unless($agenda->type === 'rapat', 404);
+
+        $data = $letters->letterData($agenda);
+
+        return view('admin.agendas.invitation-preview', $data + ['agenda' => $agenda]);
+    }
+
+    /**
+     * Unduh/stream PDF surat undangan otomatis.
+     * ?download=1 untuk lampiran unduhan, default tampil di browser.
+     */
+    public function invitationLetter(Request $request, Agenda $agenda, InvitationLetterService $letters)
+    {
+        Gate::authorize('view', $agenda);
+        abort_unless($agenda->type === 'rapat', 404);
+
+        $pdf = $letters->toPdf($agenda);
+        $filename = 'Surat Undangan - '.$agenda->title.'.pdf';
+
+        if ($request->boolean('download')) {
+            return $pdf->download($filename);
+        }
+
+        return $pdf->stream($filename);
     }
 
     public function exportQuizCsv(Agenda $agenda)
@@ -780,19 +812,30 @@ class AgendaController extends Controller
             "bank_soal_id" => "nullable|exists:bank_soals,id",
             "presenter_ids" => "nullable|array",
             "presenter_ids.*" => "nullable|distinct|exists:employees,id",
-            "letter_file" => "nullable|file|mimes:pdf|max:5120",
-            "material_file" => "nullable|file|mimes:pdf|max:10240",
+            "letter_number" => "nullable|string|max:100",
+            "material_file" => "nullable|file|mimes:pdf|max:5120",
         ]);
     }
 
-    private function buildAgendaData(array $validated): array
+    private function buildAgendaData(array $validated, ?InvitationLetterService $letters = null, ?Agenda $agenda = null): array
     {
         $agendaData = collect($validated)
-            ->except(["letter_file", "material_file", "presenter_ids", "remove_letter_file", "remove_material_file"])
+            ->except(["material_file", "presenter_ids", "remove_material_file"])
             ->toArray();
 
         if ($agendaData["type"] === "rapat") {
             $agendaData["bank_soal_id"] = null;
+        }
+
+        // Nomor surat hanya untuk rapat: auto-fill bila kosong, tetap bisa
+        // diedit manual. Tipe lain selalu null (tanpa surat undangan otomatis).
+        if (($agendaData["type"] ?? null) === "rapat") {
+            if (empty($agendaData["letter_number"] ?? null) && $letters) {
+                $date = $agendaData["event_date"] ?? $agenda?->event_date ?? now();
+                $agendaData["letter_number"] = $letters->suggestNumber($date);
+            }
+        } else {
+            $agendaData["letter_number"] = null;
         }
 
         return $agendaData;
@@ -815,16 +858,6 @@ class AgendaController extends Controller
     ): array {
         $fileData = [];
 
-        if ($request->hasFile("letter_file")) {
-            if ($replaceExisting && $agenda->letter_file_path) {
-                Storage::disk("public")->delete($agenda->letter_file_path);
-            }
-
-            $fileData["letter_file_path"] = $request
-                ->file("letter_file")
-                ->store("agenda-files/" . $agenda->id, "public");
-        }
-
         if ($request->hasFile("material_file")) {
             if ($replaceExisting && $agenda->material_file_path) {
                 Storage::disk("public")->delete($agenda->material_file_path);
@@ -846,11 +879,6 @@ class AgendaController extends Controller
     private function removedAgendaFiles(Request $request, Agenda $agenda): array
     {
         $removed = [];
-
-        if ($request->boolean('remove_letter_file') && ! $request->hasFile('letter_file') && $agenda->letter_file_path) {
-            Storage::disk('public')->delete($agenda->letter_file_path);
-            $removed['letter_file_path'] = null;
-        }
 
         if ($request->boolean('remove_material_file') && ! $request->hasFile('material_file') && $agenda->material_file_path) {
             Storage::disk('public')->delete($agenda->material_file_path);

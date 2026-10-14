@@ -23,6 +23,7 @@ class Agenda extends Model
         "room_id",
         "letter_file_path",
         "material_file_path",
+        "letter_number",
         "type",
         "bank_soal_id",
     ];

@@ -14,7 +14,7 @@
                 <p class="text-sm text-gray-400 mt-0.5">Lengkapi informasi pegawai</p>
             </div>
             <div class="p-8">
-                <form action="{{ route('admin.employees.store') }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.employees.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
 
                     <div>
@@ -58,6 +58,13 @@
                         <label for="profession" class="block text-sm font-semibold text-gray-700 mb-2">Profesi</label>
                         <input type="text" name="profession" id="profession" value="{{ old('profession') }}" placeholder="Contoh: Dokter Spesialis" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" required>
                         @error('profession') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="signature" class="block text-sm font-semibold text-gray-700 mb-2">Tanda Tangan Resmi (PNG transparan)</label>
+                        <input type="file" name="signature" id="signature" accept=".png,.jpg,.jpeg" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                        <p class="text-xs text-gray-400 mt-1">Opsional. Dipakai sebagai TTD pimpinan pada surat undangan otomatis.</p>
+                        @error('signature') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex items-center gap-3 pt-3">

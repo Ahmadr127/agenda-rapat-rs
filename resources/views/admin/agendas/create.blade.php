@@ -108,25 +108,40 @@
                                 </div>
 
                                 <div>
-                                    <label for="event_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Mulai</label>
-                                    <input type="time" name="event_time" id="event_time" value="{{ old('event_time') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" required>
+                                    <label for="event_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Mulai (24 jam)</label>
+                                    @include('admin.agendas.partials._time-24-field', [
+                                        'name' => 'event_time',
+                                        'id' => 'event_time',
+                                        'value' => old('event_time'),
+                                        'required' => true,
+                                    ])
                                     @error('event_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
 
                                 <template x-if="type === 'diklat' || type === 'pelatihan'">
                                     <div>
-                                        <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>
-                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
-                                        <p class="text-xs text-gray-400 mt-1">Wajib diisi untuk agenda diklat dan pelatihan (format 24 jam) dan harus setelah pukul mulai.</p>
+                                        <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai (24 jam)</label>
+                                        @include('admin.agendas.partials._time-24-field', [
+                                            'name' => 'event_end_time',
+                                            'id' => 'event_end_time',
+                                            'value' => old('event_end_time'),
+                                            'required' => false,
+                                            'hint' => 'Wajib diisi untuk agenda diklat dan pelatihan (format 24 jam) dan harus setelah pukul mulai.',
+                                        ])
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
 
                                 <template x-if="type === 'rapat'">
                                     <div>
-                                        <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai</label>
-                                        <input type="time" name="event_end_time" id="event_end_time" value="{{ old('event_end_time') }}" lang="id" step="60" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
-                                        <p class="text-xs text-gray-400 mt-1">Opsional untuk agenda rapat, tetapi bila diisi harus setelah pukul mulai.</p>
+                                        <label for="event_end_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Selesai (24 jam)</label>
+                                        @include('admin.agendas.partials._time-24-field', [
+                                            'name' => 'event_end_time',
+                                            'id' => 'event_end_time',
+                                            'value' => old('event_end_time'),
+                                            'required' => false,
+                                            'hint' => 'Opsional untuk agenda rapat, tetapi bila diisi harus setelah pukul mulai.',
+                                        ])
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
@@ -238,17 +253,18 @@
                                 <span x-text="'Berkas ' + (type === 'diklat' ? 'Diklat' : (type === 'pelatihan' ? 'Pelatihan' : 'Rapat'))"></span>
                             </h4>
 
+                            <div x-show="type === 'rapat'" class="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 mb-4">
+                                <p class="text-xs text-gray-600">Surat undangan <span class="font-semibold">digenerate otomatis</span> dari data agenda (kop, nomor, jadwal, pimpinan &amp; tanda tangan). Tidak perlu upload file surat lagi.</p>
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="letter_file" class="block text-sm font-semibold text-gray-700 mb-2">Surat Undangan</label>
-                                    <input type="file" name="letter_file" id="letter_file" accept=".pdf" onchange="validateAgendaFile(this, 'letter_file_error')" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
-                                    <div class="flex items-center justify-between gap-2 mt-1">
-                                        <p class="text-xs text-gray-400">Format PDF, maksimal 2MB.</p>
-                                        <button type="button" onclick="clearAgendaFile('letter_file', 'letter_file_error')" class="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline flex-shrink-0">Hapus lampiran</button>
+                                <template x-if="type === 'rapat'">
+                                    <div>
+                                        <label for="letter_number" class="block text-sm font-semibold text-gray-700 mb-2">Nomor Surat Undangan</label>
+                                        <input type="text" name="letter_number" id="letter_number" value="{{ old('letter_number', $suggestedNumber ?? '') }}" placeholder="cth. 001/RSAZRA/X/2026" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
+                                        <p class="text-xs text-gray-400 mt-1">Terisi otomatis, masih bisa diubah manual.</p>
+                                        @error('letter_number') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
-                                    <p id="letter_file_error" class="hidden text-rose-500 text-xs font-medium mt-1.5"></p>
-                                    @error('letter_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
-                                </div>
+                                </template>
 
                                 <div>
                                     <label for="material_file" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -294,42 +310,45 @@
                             </script>
                             <script>
                                 // Pukul selesai tidak boleh mundur dari pukul mulai (semua tipe agenda).
+                                // Nilai dibaca dari hidden input; pesan error ditempel ke dropdown
+                                // yang terlihat agar bisa ditampilkan browser.
                                 (function () {
-                                    function syncEndTimeMin() {
-                                        var start = document.getElementById('event_time');
-                                        var end = document.getElementById('event_end_time');
-                                        if (start && end && start.value) end.min = start.value;
+                                    function timeVal(id) {
+                                        var el = document.getElementById(id);
+                                        return el ? el.value : '';
+                                    }
+                                    function visibleEnd() {
+                                        return document.getElementById('event_end_time_hour')
+                                            || document.getElementById('event_end_time');
                                     }
                                     function validateEndTime() {
-                                        var start = document.getElementById('event_time');
-                                        var end = document.getElementById('event_end_time');
-                                        if (!start || !end) return true;
-                                        if (start.value && end.value && end.value <= start.value) {
-                                            end.setCustomValidity('Pukul selesai harus setelah pukul mulai.');
+                                        var start = timeVal('event_time');
+                                        var end = timeVal('event_end_time');
+                                        var target = visibleEnd();
+                                        if (!start || !end) {
+                                            if (target && target.setCustomValidity) target.setCustomValidity('');
+                                            return true;
+                                        }
+                                        if (end <= start) {
+                                            if (target && target.setCustomValidity) target.setCustomValidity('Pukul selesai harus setelah pukul mulai (format 24 jam).');
                                             return false;
                                         }
-                                        end.setCustomValidity('');
+                                        if (target && target.setCustomValidity) target.setCustomValidity('');
                                         return true;
                                     }
-                                    document.addEventListener('input', function (e) {
-                                        if (e.target && (e.target.id === 'event_time' || e.target.id === 'event_end_time')) {
-                                            syncEndTimeMin();
+                                    // Delegasi 'change': mencakup dropdown JJ/MM yang dirender Alpine (x-if).
+                                    document.addEventListener('change', function (e) {
+                                        if (e.target && /event_(end_)?time/.test(e.target.id || '')) {
                                             validateEndTime();
                                         }
                                     });
                                     document.addEventListener('submit', function (e) {
                                         if (e.target && e.target.matches('form[action*="agendas"]') && !validateEndTime()) {
                                             e.preventDefault();
-                                            var end = document.getElementById('event_end_time');
-                                            if (end) end.reportValidity();
+                                            var t = visibleEnd();
+                                            if (t && t.reportValidity) t.reportValidity();
                                         }
                                     }, true);
-                                    // Field dirender Alpine (x-if) setelah init — sinkron awal beberapa kali.
-                                    var tries = 0;
-                                    var t = setInterval(function () {
-                                        syncEndTimeMin();
-                                        if (document.getElementById('event_end_time') || ++tries >= 10) clearInterval(t);
-                                    }, 300);
                                 })();
                             </script>
                         </div>

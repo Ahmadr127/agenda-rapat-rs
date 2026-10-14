@@ -14,7 +14,7 @@
                 <p class="text-sm text-gray-400 mt-0.5">Perbarui informasi pegawai</p>
             </div>
             <div class="p-8">
-                <form action="{{ route('admin.employees.update', $employee) }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.employees.update', $employee) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf @method('PUT')
 
                     <div>
@@ -59,6 +59,22 @@
                         <label for="profession" class="block text-sm font-semibold text-gray-700 mb-2">Profesi</label>
                         <input type="text" name="profession" id="profession" value="{{ old('profession', $employee->profession) }}" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" required>
                         @error('profession') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label for="signature" class="block text-sm font-semibold text-gray-700 mb-2">Tanda Tangan Resmi (PNG transparan)</label>
+                        @if($employee->signature_path)
+                            <img src="{{ Storage::url($employee->signature_path) }}" alt="TTD {{ $employee->full_name }}" class="h-16 object-contain bg-white border border-gray-200 rounded-xl px-3 py-1 mb-2">
+                        @endif
+                        <input type="file" name="signature" id="signature" accept=".png,.jpg,.jpeg" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                        <p class="text-xs text-gray-400 mt-1">Opsional. Dipakai sebagai TTD pimpinan pada surat undangan otomatis.</p>
+                        @if($employee->signature_path)
+                            <label class="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-rose-600 cursor-pointer">
+                                <input type="checkbox" name="remove_signature" value="1" @checked(old('remove_signature')) class="w-4 h-4 rounded text-rose-600 border-gray-300 focus:ring-rose-500">
+                                Hapus tanda tangan tersimpan
+                            </label>
+                        @endif
+                        @error('signature') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex items-center gap-3 pt-3">

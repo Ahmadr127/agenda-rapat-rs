@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
 {
@@ -106,12 +107,18 @@ class EmployeeController extends Controller
             'job_position' => 'required|string|max:255',
             'structural_role' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
+            'signature' => 'nullable|file|image|mimes:png,jpg,jpeg|max:2048',
         ]);
 
         $this->ensureUnitAllowed($request, (int) $validated['unit_id']);
 
         $user = $this->syncUser(null, $validated['full_name']);
         $validated['user_id'] = $user->id;
+
+        if ($request->hasFile('signature')) {
+            $validated['signature_path'] = $request->file('signature')->store('employee-signatures', 'public');
+        }
+        unset($validated['signature']);
 
         Employee::create($validated);
 
@@ -140,11 +147,24 @@ class EmployeeController extends Controller
             'job_position' => 'required|string|max:255',
             'structural_role' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
+            'signature' => 'nullable|file|image|mimes:png,jpg,jpeg|max:2048',
+            'remove_signature' => 'nullable|boolean',
         ]);
 
         $this->ensureUnitAllowed($request, (int) $validated['unit_id']);
 
         $this->syncUser($employee->user_id, $validated['full_name']);
+
+        if ($request->hasFile('signature')) {
+            if ($employee->signature_path) {
+                Storage::disk('public')->delete($employee->signature_path);
+            }
+            $validated['signature_path'] = $request->file('signature')->store('employee-signatures', 'public');
+        } elseif ($request->boolean('remove_signature') && $employee->signature_path) {
+            Storage::disk('public')->delete($employee->signature_path);
+            $validated['signature_path'] = null;
+        }
+        unset($validated['signature'], $validated['remove_signature']);
 
         $employee->update($validated);
 
@@ -158,6 +178,10 @@ class EmployeeController extends Controller
         Gate::authorize('delete', $employee);
 
         $userId = $employee->user_id;
+
+        if ($employee->signature_path) {
+            Storage::disk('public')->delete($employee->signature_path);
+        }
 
         $employee->delete();
 

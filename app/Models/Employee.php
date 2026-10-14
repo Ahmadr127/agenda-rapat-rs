@@ -20,6 +20,7 @@ class Employee extends Model
         'job_position',
         'structural_role',
         'profession',
+        'signature_path',
     ];
 
     public function user(): BelongsTo

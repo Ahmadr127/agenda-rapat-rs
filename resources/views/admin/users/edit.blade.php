@@ -16,7 +16,7 @@
                 </p>
             </div>
             <div class="p-8">
-                <form action="{{ route('admin.users.update', $user) }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.users.update', $user) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     @method('PUT')
 
@@ -77,6 +77,14 @@
                         </div>
                         <p class="text-xs text-gray-400 mt-1">Tanpa role = hanya bisa melihat (hak minimal).</p>
                         @error('role_ids') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <span class="block text-sm font-semibold text-gray-700 mb-2">Tanda Tangan Digital</span>
+                        <x-signature-pad-input canvas-id="user-signature-pad" :existing-url="$user->signature_path ? Storage::url($user->signature_path) : null" :existing-label="'Tanda tangan ' . $user->name" />
+                        <p class="text-xs text-gray-400 mt-1">Opsional. Dipakai sebagai TTD pada surat undangan bila pegawai tertaut tidak punya TTD resmi.</p>
+                        @error('signature_data') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                        @error('signature') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex items-center gap-3 pt-3">

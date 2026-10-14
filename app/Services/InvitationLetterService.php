@@ -26,19 +26,6 @@ class InvitationLetterService
 
     public const LETTER_CITY = 'Bogor';
 
-    /** Daftar "Kepada Yth." bawaan bila agenda belum punya peserta terdaftar. */
-    public const DEFAULT_RECIPIENTS = [
-        'Direktur Rumah Sakit',
-        'Manager Pelayanan Medis',
-        'Manager Penunjang Medis',
-        'Manager Keperawatan',
-        'Manager SDM',
-        'Manager Marketing',
-        'Manager Akuntansi, Procurement, dan Pajak',
-        'Manager IT',
-        'Manager GA',
-    ];
-
     public const DEFAULT_TEMBUSAN = ['Arsip'];
 
     /**
@@ -78,7 +65,7 @@ class InvitationLetterService
      */
     public function letterData(Agenda $agenda): array
     {
-        $agenda->loadMissing(['room', 'unit', 'eventLeader', 'employees.unit']);
+        $agenda->loadMissing(['room', 'unit', 'eventLeader.user', 'employees.unit']);
 
         $eventDate = $agenda->event_date instanceof CarbonInterface
             ? Carbon::parse($agenda->event_date)
@@ -127,36 +114,15 @@ class InvitationLetterService
     }
 
     /**
-     * Daftar "Kepada Yth.": daftar kustom per agenda bila diisi,
-     * jika tidak peserta terdaftar (nama + jabatan) bila sudah ada,
-     * jika tidak daftar jabatan bawaan RS AZRA.
+     * Daftar "Kepada Yth." murni dari inputan per agenda (satu baris =
+     * satu penerima). Input kosong = tanpa baris penerima. Daftar hadir
+     * TIDAK dipakai sebagai penerima (peserta absen bukan undangan).
      *
      * @return array<int, string>
      */
     public function recipients(Agenda $agenda): array
     {
-        $custom = $this->parseRecipientsText($agenda->letter_recipients ?? '');
-        if ($custom !== []) {
-            return $custom;
-        }
-
-        if ($agenda->relationLoaded('employees') && $agenda->employees->count() > 0) {
-            return $agenda->employees
-                ->sortBy('full_name')
-                ->map(fn ($e) => trim($e->full_name.($e->job_position ? ' — '.$e->job_position : '')))
-                ->values()
-                ->all();
-        }
-
-        return self::DEFAULT_RECIPIENTS;
-    }
-
-    /**
-     * Isi awal textarea penerima: satu baris per penerima.
-     */
-    public function defaultRecipientsText(): string
-    {
-        return implode("\n", self::DEFAULT_RECIPIENTS);
+        return $this->parseRecipientsText($agenda->letter_recipients ?? '');
     }
 
     /**
@@ -174,8 +140,8 @@ class InvitationLetterService
     }
 
     /**
-     * TTD pimpinan: tanda tangan resmi pegawai (employees.signature_path)
-     * bila ada, jika tidak tanda tangan kehadiran pada agenda ini.
+     * TTD pimpinan: TTD resmi pegawai, bila kosong TTD digital akun user
+     * yang tertaut, bila kosong tanda tangan kehadiran pada agenda ini.
      */
     public function leaderSignature(Agenda $agenda): ?string
     {
@@ -183,6 +149,14 @@ class InvitationLetterService
 
         if ($leader?->signature_path) {
             $uri = $this->storageDataUri($leader->signature_path);
+            if ($uri) {
+                return $uri;
+            }
+        }
+
+        $userSignature = $leader?->user?->signature_path;
+        if ($userSignature) {
+            $uri = $this->storageDataUri($userSignature);
             if ($uri) {
                 return $uri;
             }

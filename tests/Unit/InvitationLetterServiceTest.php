@@ -3,8 +3,11 @@
 namespace Tests\Unit;
 
 use App\Models\Agenda;
+use App\Models\Employee;
+use App\Models\User;
 use App\Services\InvitationLetterService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class InvitationLetterServiceTest extends TestCase
@@ -45,28 +48,28 @@ class InvitationLetterServiceTest extends TestCase
         $this->assertSame('10.00 s.d 15.00 WIB', $data['timeRange']);
         $this->assertStringContainsString('Bogor, 6 Oktober 2026', $data['letterPlaceDate']);
         $this->assertSame('Assessment RS Pasutri', $data['agendaTitle']);
-        // Belum ada peserta → daftar bawaan 9 jabatan.
-        $this->assertCount(9, $data['recipients']);
-        $this->assertContains('Direktur Rumah Sakit', $data['recipients']);
+        // Input kosong → tanpa baris penerima.
+        $this->assertSame([], $data['recipients']);
         $this->assertSame(['Arsip'], $data['tembusan']);
     }
 
-    public function test_recipients_prefers_registered_employees_over_defaults(): void
+    public function test_recipients_stays_empty_despite_attendees_when_input_empty(): void
     {
         $agenda = Agenda::factory()->create([
             'event_date' => '2026-10-06',
             'event_time' => '10:00',
+            'letter_recipients' => null,
         ]);
-        $leader = $agenda->eventLeader;
-        $agenda->employees()->attach($leader->id);
+        $agenda->employees()->attach($agenda->eventLeader->id);
         $agenda->load(['room', 'unit', 'eventLeader', 'employees']);
 
         $data = (new InvitationLetterService)->letterData($agenda);
 
-        $this->assertStringContainsString($leader->full_name, $data['recipients'][0]);
+        // Peserta hadir bukan undangan: tetap kosong.
+        $this->assertSame([], $data['recipients']);
     }
 
-    public function test_custom_recipients_text_beats_employees_and_defaults(): void
+    public function test_custom_recipients_text_beats_defaults_even_with_attendees(): void
     {
         $agenda = Agenda::factory()->create([
             'event_date' => '2026-10-06',
@@ -87,9 +90,25 @@ class InvitationLetterServiceTest extends TestCase
 
         $this->assertSame(['A', 'B'], $parsed);
         $this->assertSame([], (new InvitationLetterService)->parseRecipientsText(null));
-        $this->assertSame(
-            implode("\n", InvitationLetterService::DEFAULT_RECIPIENTS),
-            (new InvitationLetterService)->defaultRecipientsText()
-        );
+    }
+
+    public function test_leader_signature_falls_back_to_linked_user_signature(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('user-signatures/direktur.png', 'fake-png-bytes');
+
+        $user = User::factory()->create(['signature_path' => 'user-signatures/direktur.png']);
+        $leader = Employee::factory()->create(['user_id' => $user->id, 'signature_path' => null]);
+        $agenda = Agenda::factory()->create([
+            'event_date' => '2026-10-06',
+            'event_time' => '10:00',
+            'event_leader_id' => $leader->id,
+        ]);
+        $agenda->load(['room', 'unit', 'eventLeader', 'employees']);
+
+        $data = (new InvitationLetterService)->letterData($agenda);
+
+        $this->assertStringStartsWith('data:', $data['signatureDataUri']);
+        $this->assertStringContainsString('base64,', $data['signatureDataUri']);
     }
 }

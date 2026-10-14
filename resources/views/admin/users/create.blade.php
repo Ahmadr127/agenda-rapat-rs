@@ -14,7 +14,7 @@
                 <p class="text-sm text-gray-400 mt-0.5">Tautkan akun login ke pegawai yang belum punya akun</p>
             </div>
             <div class="p-8">
-                <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-4">
+                <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
 
                     <div>
@@ -81,6 +81,14 @@
                         </div>
                         <p class="text-xs text-gray-400 mt-1">Tanpa role = hanya bisa melihat (hak minimal).</p>
                         @error('role_ids') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <span class="block text-sm font-semibold text-gray-700 mb-2">Tanda Tangan Digital</span>
+                        <x-signature-pad-input canvas-id="user-signature-pad" />
+                        <p class="text-xs text-gray-400 mt-1">Opsional. Dipakai sebagai TTD pada surat undangan bila pegawai tertaut tidak punya TTD resmi.</p>
+                        @error('signature_data') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                        @error('signature') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex items-center gap-3 pt-3">

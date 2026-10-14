@@ -6,12 +6,14 @@ use App\Models\Employee;
 use App\Models\Role;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\SignatureStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -59,7 +61,7 @@ class UserController extends Controller
         return view('admin.users.create', compact('roles'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, SignatureStorageService $signatures): RedirectResponse
     {
         Gate::authorize('create', User::class);
 
@@ -71,6 +73,8 @@ class UserController extends Controller
             'password' => ['nullable', 'confirmed', Password::min(6)],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['integer', 'exists:roles,id'],
+            'signature' => ['nullable', 'file', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
+            'signature_data' => ['nullable', 'string', 'max:700000'],
         ]);
 
         $employee = Employee::findOrFail($validated['employee_id']);
@@ -79,12 +83,13 @@ class UserController extends Controller
             return back()->withInput()->withErrors(['employee_id' => 'Pegawai ini sudah memiliki akun.']);
         }
 
-        DB::transaction(function () use ($validated, $employee) {
+        DB::transaction(function () use ($validated, $employee, $request, $signatures) {
             $user = User::create([
                 'name' => $validated['name'],
                 'username' => $validated['username'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password'] ?? 'rsazra2026'),
+                'signature_path' => $signatures->resolveOfficialSignature($request, null, 'user-signatures'),
             ]);
 
             $user->roles()->sync($validated['role_ids'] ?? []);
@@ -107,7 +112,7 @@ class UserController extends Controller
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user, SignatureStorageService $signatures): RedirectResponse
     {
         Gate::authorize('update', $user);
 
@@ -118,11 +123,17 @@ class UserController extends Controller
             'unit_id' => ['nullable', 'exists:units,id'],
             'role_ids' => ['nullable', 'array'],
             'role_ids.*' => ['integer', 'exists:roles,id'],
+            'signature' => ['nullable', 'file', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
+            'signature_data' => ['nullable', 'string', 'max:700000'],
+            'remove_signature' => ['nullable', 'boolean'],
         ]);
 
-        DB::transaction(function () use ($user, $validated) {
+        DB::transaction(function () use ($user, $validated, $request, $signatures) {
             $user->update(Arr::only($validated, ['name', 'username', 'email']));
             $user->roles()->sync($validated['role_ids'] ?? []);
+            $user->update([
+                'signature_path' => $signatures->resolveOfficialSignature($request, $user->signature_path, 'user-signatures'),
+            ]);
 
             if ($user->employee && ! empty($validated['unit_id'])) {
                 $user->employee->update(['unit_id' => $validated['unit_id']]);
@@ -139,6 +150,10 @@ class UserController extends Controller
         Gate::authorize('delete', $user);
 
         abort_if($user->is(auth()->user()), 403, 'Tidak dapat menghapus akun sendiri.');
+
+        if ($user->signature_path) {
+            Storage::disk('public')->delete($user->signature_path);
+        }
 
         $user->delete();
 

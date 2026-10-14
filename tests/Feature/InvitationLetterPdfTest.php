@@ -20,6 +20,7 @@ class InvitationLetterPdfTest extends TestCase
             'event_end_time' => '15:00',
             'type' => 'rapat',
             'letter_number' => '925/RSAZRA/X/2026',
+            'letter_recipients' => "Direktur Rumah Sakit\nManager Keperawatan",
         ]);
     }
 

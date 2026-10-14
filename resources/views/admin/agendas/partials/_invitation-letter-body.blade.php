@@ -17,7 +17,7 @@
 
     <p class="mt">Kepada Yth.</p>
     @foreach($recipients as $recipient)
-        <p class="recipient">{{ $recipient }}</p>
+        <p class="recipient font-bold">{{ $recipient }}</p>
     @endforeach
     <p class="mt-sm">Di tempat</p>
 
@@ -54,20 +54,22 @@
     <table class="letter-sign">
         <tr>
             <td class="sign-spacer"></td>
-            <td class="sign-block">
+            <td class="sign-block" style="text-align:right;">
                 <p>{{ $leaderTitle }},</p>
                 @if(! empty($signatureDataUri))
-                    <img src="{{ $signatureDataUri }}" alt="Tanda tangan {{ $leaderName }}" class="sign-image">
+                    <div style="text-align:right;margin:4pt 0;">
+                        <img src="{{ $signatureDataUri }}" alt="Tanda tangan {{ $leaderName }}" class="sign-image" style="display:inline;width:auto;height:auto;max-width:170pt;max-height:75pt;">
+                    </div>
                 @else
                     <div class="sign-empty"></div>
                 @endif
-                <p class="sign-name"><u>{{ $leaderName }}</u></p>
+                <p class="sign-name font-bold"><u>{{ $leaderName }}</u></p>
             </td>
         </tr>
     </table>
 
-    <p class="mt">Tembusan :</p>
+    <p class="mt text-[12px]">Tembusan :</p>
     @foreach($tembusan as $i => $copy)
-        <p class="tembusan-item">{{ $i + 1 }}. {{ $copy }}</p>
+        <p class="tembusan-item text-[12px]">{{ $i + 1 }}. {{ $copy }}</p>
     @endforeach
 </div>

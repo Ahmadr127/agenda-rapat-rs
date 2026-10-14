@@ -86,9 +86,8 @@ class AgendaController extends Controller
 
         $userUnit = auth()->user()->employee?->unit;
         $suggestedNumber = $letters->suggestNumber(now());
-        $suggestedRecipients = $letters->defaultRecipientsText();
 
-        return view("admin.agendas.create", compact('userUnit', 'suggestedNumber', 'suggestedRecipients') + $this->agendaFormAccess($userUnit));
+        return view("admin.agendas.create", compact('userUnit', 'suggestedNumber') + $this->agendaFormAccess($userUnit));
     }
 
     public function searchTypes(Request $request)
@@ -214,9 +213,8 @@ class AgendaController extends Controller
 
         $userUnit = auth()->user()->employee?->unit;
         $suggestedNumber = $agenda->letter_number ?: $letters->suggestNumber($agenda->event_date);
-        $suggestedRecipients = $agenda->letter_recipients ?: $letters->defaultRecipientsText();
 
-        return view("admin.agendas.edit", compact("agenda", "userUnit", "suggestedNumber", "suggestedRecipients") + $this->agendaFormAccess($userUnit));
+        return view("admin.agendas.edit", compact("agenda", "userUnit", "suggestedNumber") + $this->agendaFormAccess($userUnit));
     }
 
     public function update(AgendaRequest $request, Agenda $agenda, InvitationLetterService $letters)
@@ -854,16 +852,17 @@ class AgendaController extends Controller
             $agendaData["bank_soal_id"] = null;
         }
 
-        // Nomor surat & daftar penerima hanya untuk rapat: auto-fill bila
-        // kosong, tetap bisa diedit manual. Tipe lain selalu null
-        // (tanpa surat undangan otomatis).
+        // Nomor surat hanya untuk rapat: auto-fill bila kosong, tetap bisa
+        // diedit manual. Daftar penerima default kosong (null) — surat
+        // memakai peserta terdaftar atau daftar bawaan bila dikosongkan.
+        // Tipe lain selalu null (tanpa surat undangan otomatis).
         if (($agendaData["type"] ?? null) === "rapat") {
             if (empty($agendaData["letter_number"] ?? null) && $letters) {
                 $date = $agendaData["event_date"] ?? $agenda?->event_date ?? now();
                 $agendaData["letter_number"] = $letters->suggestNumber($date);
             }
-            if (empty(trim((string) ($agendaData["letter_recipients"] ?? ''))) && $letters) {
-                $agendaData["letter_recipients"] = $letters->defaultRecipientsText();
+            if (empty(trim((string) ($agendaData["letter_recipients"] ?? '')))) {
+                $agendaData["letter_recipients"] = null;
             }
         } else {
             $agendaData["letter_number"] = null;

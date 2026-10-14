@@ -6,6 +6,7 @@ use App\Helpers\NameConverter;
 use App\Models\Employee;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\SignatureStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -96,7 +97,7 @@ class EmployeeController extends Controller
         return view('admin.employees.create');
     }
 
-    public function store(Request $request)
+    public function store(Request $request, SignatureStorageService $signatures)
     {
         Gate::authorize('create', Employee::class);
 
@@ -108,6 +109,7 @@ class EmployeeController extends Controller
             'structural_role' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
             'signature' => 'nullable|file|image|mimes:png,jpg,jpeg|max:2048',
+            'signature_data' => 'nullable|string|max:700000',
         ]);
 
         $this->ensureUnitAllowed($request, (int) $validated['unit_id']);
@@ -115,10 +117,8 @@ class EmployeeController extends Controller
         $user = $this->syncUser(null, $validated['full_name']);
         $validated['user_id'] = $user->id;
 
-        if ($request->hasFile('signature')) {
-            $validated['signature_path'] = $request->file('signature')->store('employee-signatures', 'public');
-        }
-        unset($validated['signature']);
+        $validated['signature_path'] = $signatures->resolveOfficialSignature($request, null, 'employee-signatures');
+        unset($validated['signature'], $validated['signature_data']);
 
         Employee::create($validated);
 
@@ -136,7 +136,7 @@ class EmployeeController extends Controller
         return view('admin.employees.edit', compact('employee'));
     }
 
-    public function update(Request $request, Employee $employee)
+    public function update(Request $request, Employee $employee, SignatureStorageService $signatures)
     {
         Gate::authorize('update', $employee);
 
@@ -148,6 +148,7 @@ class EmployeeController extends Controller
             'structural_role' => 'required|string|max:255',
             'profession' => 'required|string|max:255',
             'signature' => 'nullable|file|image|mimes:png,jpg,jpeg|max:2048',
+            'signature_data' => 'nullable|string|max:700000',
             'remove_signature' => 'nullable|boolean',
         ]);
 
@@ -155,16 +156,8 @@ class EmployeeController extends Controller
 
         $this->syncUser($employee->user_id, $validated['full_name']);
 
-        if ($request->hasFile('signature')) {
-            if ($employee->signature_path) {
-                Storage::disk('public')->delete($employee->signature_path);
-            }
-            $validated['signature_path'] = $request->file('signature')->store('employee-signatures', 'public');
-        } elseif ($request->boolean('remove_signature') && $employee->signature_path) {
-            Storage::disk('public')->delete($employee->signature_path);
-            $validated['signature_path'] = null;
-        }
-        unset($validated['signature'], $validated['remove_signature']);
+        $validated['signature_path'] = $signatures->resolveOfficialSignature($request, $employee->signature_path, 'employee-signatures');
+        unset($validated['signature'], $validated['signature_data'], $validated['remove_signature']);
 
         $employee->update($validated);
 

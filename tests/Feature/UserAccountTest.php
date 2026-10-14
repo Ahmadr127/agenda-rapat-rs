@@ -7,6 +7,7 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class UserAccountTest extends TestCase
@@ -161,5 +162,43 @@ class UserAccountTest extends TestCase
             'username' => 'x',
             'email' => 'x@rsazra.co.id',
         ])->assertForbidden();
+    }
+
+    public function test_manager_can_save_digital_signature_on_account_update(): void
+    {
+        Storage::fake('public');
+        $manager = $this->createManager();
+
+        $response = $this->actingAs($manager)->put(route('admin.users.update', $manager), [
+            'name' => $manager->name,
+            'username' => $manager->username,
+            'email' => $manager->email,
+            'signature_data' => 'data:image/png;base64,'.base64_encode('fake-png-bytes'),
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $path = $manager->refresh()->signature_path;
+        $this->assertStringStartsWith('user-signatures/', $path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_manager_can_create_account_with_digital_signature(): void
+    {
+        Storage::fake('public');
+        $manager = $this->createManager();
+        $employee = $this->createPlainEmployee('900000000000000009');
+
+        $response = $this->actingAs($manager)->post(route('admin.users.store'), [
+            'employee_id' => $employee->id,
+            'name' => 'Akun TTD',
+            'username' => 'akun.ttd',
+            'email' => 'akun.ttd@rsazra.co.id',
+            'signature_data' => 'data:image/png;base64,'.base64_encode('fake-png-bytes'),
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $user = User::where('username', 'akun.ttd')->firstOrFail();
+        $this->assertStringStartsWith('user-signatures/', $user->signature_path);
+        Storage::disk('public')->assertExists($user->signature_path);
     }
 }

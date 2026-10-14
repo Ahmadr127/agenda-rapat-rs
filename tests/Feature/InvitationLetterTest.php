@@ -132,8 +132,7 @@ class InvitationLetterTest extends TestCase
         );
     }
 
-    public function test_store_non_rapat_ignores_custom_recipients(): void
-    {
+    public function test_store_non_rapat_ignores_custom_recipients(): void    {
         $user = User::factory()->create();
         $bankSoal = BankSoal::factory()->create();
 
@@ -167,5 +166,23 @@ class InvitationLetterTest extends TestCase
             ->assertOk()
             ->assertSee('Kepala Dinas Kesehatan', false)
             ->assertDontSee('Manager GA', false);
+    }
+
+    public function test_store_rapat_without_recipients_stays_empty(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), [
+            'title' => 'Rapat Koordinasi',
+            'event_date' => '2026-10-20',
+            'event_time' => '10:00',
+            'unit_id' => Unit::factory()->create()->id,
+            'event_leader_id' => Employee::factory()->create()->id,
+            'room_id' => Room::factory()->create()->id,
+            'type' => 'rapat',
+        ]);
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $this->assertNull(Agenda::first()->letter_recipients);
     }
 }

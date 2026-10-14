@@ -297,9 +297,9 @@
                             </div>
                             <template x-if="type === 'rapat'">
                                 <div class="mt-4">
-                                    <label for="letter_recipients" class="block text-sm font-semibold text-gray-700 mb-2">Daftar Penerima (Kepada Yth.)</label>
-                                    <textarea name="letter_recipients" id="letter_recipients" rows="6" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">{{ old('letter_recipients', $agenda->letter_recipients ?? ($suggestedRecipients ?? '')) }}</textarea>
-                                    <p class="text-xs text-gray-400 mt-1">Satu penerima per baris. Kosongkan untuk memakai peserta terdaftar atau daftar bawaan.</p>
+                                        <label for="letter_recipients" class="block text-sm font-semibold text-gray-700 mb-2">Daftar Penerima (Kepada Yth.)</label>
+                                        <textarea name="letter_recipients" id="letter_recipients" rows="6" placeholder="Satu penerima per baris, cth.&#10;Direktur Rumah Sakit&#10;Manager Keperawatan" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">{{ old('letter_recipients', $agenda->letter_recipients ?? '') }}</textarea>
+                                        <p class="text-xs text-gray-400 mt-1">Satu penerima per baris. Boleh dikosongkan.</p>
                                     @error('letter_recipients') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
                             </template>

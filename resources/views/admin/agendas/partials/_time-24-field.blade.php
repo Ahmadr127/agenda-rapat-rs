@@ -1,9 +1,4 @@
-{{-- Time picker 24 jam kustom (HH:mm, tanpa AM/PM).
-     Alasan: <input type="time"> native mengikuti locale OS/browser sehingga di
-     perangkat ber-locale en-US tetap tampil 12 jam + AM/PM. Picker ini selalu
-     24 jam: kolom Jam 00-23 dan Menit 00-59 dalam popover kecil di bawah input,
-     plus ketik manual HH:mm. Nilai yang dikirim selalu "HH:MM".
-     Variabel: $name, $id, $value ("HH:MM" atau ""), $required (bool), $hint (opsional) --}}
+
 @php
     $tpValue = (string) ($value ?? '');
     if (! preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/', $tpValue)) {

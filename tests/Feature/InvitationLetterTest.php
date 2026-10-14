@@ -109,4 +109,63 @@ class InvitationLetterTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'application/pdf');
     }
+
+    public function test_store_rapat_saves_custom_recipients(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), [
+            'title' => 'Rapat Koordinasi',
+            'event_date' => '2026-10-20',
+            'event_time' => '10:00',
+            'unit_id' => Unit::factory()->create()->id,
+            'event_leader_id' => Employee::factory()->create()->id,
+            'room_id' => Room::factory()->create()->id,
+            'type' => 'rapat',
+            'letter_recipients' => "Kepala Dinas Kesehatan\nPuskesmas Bogor Utara",
+        ]);
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $this->assertSame(
+            "Kepala Dinas Kesehatan\nPuskesmas Bogor Utara",
+            Agenda::first()->letter_recipients
+        );
+    }
+
+    public function test_store_non_rapat_ignores_custom_recipients(): void
+    {
+        $user = User::factory()->create();
+        $bankSoal = BankSoal::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), [
+            'title' => 'Diklat Kompetensi',
+            'event_date' => '2026-10-20',
+            'event_time' => '09:00',
+            'event_end_time' => '12:00',
+            'unit_id' => Unit::factory()->create()->id,
+            'event_leader_id' => Employee::factory()->create()->id,
+            'room_id' => Room::factory()->create()->id,
+            'type' => 'diklat',
+            'bank_soal_id' => $bankSoal->id,
+            'letter_recipients' => 'Siapa pun',
+        ]);
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $this->assertNull(Agenda::first()->letter_recipients);
+    }
+
+    public function test_preview_uses_custom_recipients(): void
+    {
+        $user = User::factory()->create();
+        $agenda = Agenda::factory()->create([
+            'type' => 'rapat',
+            'letter_recipients' => "Kepala Dinas Kesehatan\nPuskesmas Bogor Utara",
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('admin.agendas.invitation-preview', $agenda))
+            ->assertOk()
+            ->assertSee('Kepala Dinas Kesehatan', false)
+            ->assertDontSee('Manager GA', false);
+    }
 }

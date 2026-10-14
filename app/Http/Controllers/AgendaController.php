@@ -11,6 +11,7 @@ use App\Models\Unit;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use App\Http\Requests\AgendaRequest;
+use App\Services\AttendanceService;
 use App\Services\InvitationLetterService;
 use App\Support\AgendaTypeAccess;
 use Illuminate\Support\Collection;
@@ -85,8 +86,9 @@ class AgendaController extends Controller
 
         $userUnit = auth()->user()->employee?->unit;
         $suggestedNumber = $letters->suggestNumber(now());
+        $suggestedRecipients = $letters->defaultRecipientsText();
 
-        return view("admin.agendas.create", compact('userUnit', 'suggestedNumber') + $this->agendaFormAccess($userUnit));
+        return view("admin.agendas.create", compact('userUnit', 'suggestedNumber', 'suggestedRecipients') + $this->agendaFormAccess($userUnit));
     }
 
     public function searchTypes(Request $request)
@@ -212,8 +214,9 @@ class AgendaController extends Controller
 
         $userUnit = auth()->user()->employee?->unit;
         $suggestedNumber = $agenda->letter_number ?: $letters->suggestNumber($agenda->event_date);
+        $suggestedRecipients = $agenda->letter_recipients ?: $letters->defaultRecipientsText();
 
-        return view("admin.agendas.edit", compact("agenda", "userUnit", "suggestedNumber") + $this->agendaFormAccess($userUnit));
+        return view("admin.agendas.edit", compact("agenda", "userUnit", "suggestedNumber", "suggestedRecipients") + $this->agendaFormAccess($userUnit));
     }
 
     public function update(AgendaRequest $request, Agenda $agenda, InvitationLetterService $letters)
@@ -715,6 +718,30 @@ class AgendaController extends Controller
             ->with("success", "Agenda berhasil dihapus.");
     }
 
+    /**
+     * Hapus satu baris daftar hadir. Hanya selama agenda belum selesai.
+     */
+    public function removeAttendee(Agenda $agenda, Employee $employee, AttendanceService $attendance)
+    {
+        Gate::authorize('update', $agenda);
+        abort_unless(
+            $agenda->isAttendanceEditable(),
+            403,
+            'Daftar hadir sudah dikunci karena agenda telah selesai.'
+        );
+
+        $removed = $attendance->removeAttendee($agenda, $employee->id);
+
+        return redirect()
+            ->route("admin.agendas.show", $agenda)
+            ->with(
+                $removed ? "success" : "error",
+                $removed
+                    ? "Kehadiran {$employee->full_name} berhasil dihapus."
+                    : "Data kehadiran tidak ditemukan."
+            );
+    }
+
     private function sanitizeCsvText(?string $value): string
     {
         if ($value === null || $value === "") {
@@ -827,15 +854,20 @@ class AgendaController extends Controller
             $agendaData["bank_soal_id"] = null;
         }
 
-        // Nomor surat hanya untuk rapat: auto-fill bila kosong, tetap bisa
-        // diedit manual. Tipe lain selalu null (tanpa surat undangan otomatis).
+        // Nomor surat & daftar penerima hanya untuk rapat: auto-fill bila
+        // kosong, tetap bisa diedit manual. Tipe lain selalu null
+        // (tanpa surat undangan otomatis).
         if (($agendaData["type"] ?? null) === "rapat") {
             if (empty($agendaData["letter_number"] ?? null) && $letters) {
                 $date = $agendaData["event_date"] ?? $agenda?->event_date ?? now();
                 $agendaData["letter_number"] = $letters->suggestNumber($date);
             }
+            if (empty(trim((string) ($agendaData["letter_recipients"] ?? ''))) && $letters) {
+                $agendaData["letter_recipients"] = $letters->defaultRecipientsText();
+            }
         } else {
             $agendaData["letter_number"] = null;
+            $agendaData["letter_recipients"] = null;
         }
 
         return $agendaData;

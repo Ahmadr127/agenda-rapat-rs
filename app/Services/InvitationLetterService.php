@@ -127,13 +127,19 @@ class InvitationLetterService
     }
 
     /**
-     * Daftar "Kepada Yth.": peserta terdaftar (nama + jabatan) bila sudah ada,
+     * Daftar "Kepada Yth.": daftar kustom per agenda bila diisi,
+     * jika tidak peserta terdaftar (nama + jabatan) bila sudah ada,
      * jika tidak daftar jabatan bawaan RS AZRA.
      *
      * @return array<int, string>
      */
     public function recipients(Agenda $agenda): array
     {
+        $custom = $this->parseRecipientsText($agenda->letter_recipients ?? '');
+        if ($custom !== []) {
+            return $custom;
+        }
+
         if ($agenda->relationLoaded('employees') && $agenda->employees->count() > 0) {
             return $agenda->employees
                 ->sortBy('full_name')
@@ -143,6 +149,28 @@ class InvitationLetterService
         }
 
         return self::DEFAULT_RECIPIENTS;
+    }
+
+    /**
+     * Isi awal textarea penerima: satu baris per penerima.
+     */
+    public function defaultRecipientsText(): string
+    {
+        return implode("\n", self::DEFAULT_RECIPIENTS);
+    }
+
+    /**
+     * Urai textarea penerima menjadi daftar bersih (satu baris = satu penerima).
+     *
+     * @return array<int, string>
+     */
+    public function parseRecipientsText(?string $text): array
+    {
+        return collect(preg_split('/\r\n|\r|\n/', (string) $text) ?: [])
+            ->map(fn ($line) => trim((string) $line))
+            ->filter(fn ($line) => $line !== '')
+            ->values()
+            ->all();
     }
 
     /**

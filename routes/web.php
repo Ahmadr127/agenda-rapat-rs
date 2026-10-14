@@ -75,6 +75,10 @@ Route::middleware("auth")
             "searchTypes",
         ])->name("agendas.types.search");
         Route::resource("agendas", AgendaController::class);
+        Route::delete("agendas/{agenda}/attendees/{employee}", [
+            AgendaController::class,
+            "removeAttendee",
+        ])->name("agendas.attendees.destroy");
         Route::get("agendas/{agenda}/invitation-letter", [
             AgendaController::class,
             "invitationLetter",
@@ -134,6 +138,10 @@ Route::post("/absen/{agenda}/sign", [
     AttendanceController::class,
     "sign",
 ])->name("attendance.sign");
+Route::delete("/absen/{agenda}/sign", [
+    AttendanceController::class,
+    "unsign",
+])->name("attendance.unsign");
 Route::post("/absen/{agenda}/pretest", [
     AttendanceController::class,
     "storePretest",

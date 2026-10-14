@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 class Agenda extends Model
 {
@@ -24,6 +25,7 @@ class Agenda extends Model
         "letter_file_path",
         "material_file_path",
         "letter_number",
+        "letter_recipients",
         "type",
         "bank_soal_id",
     ];
@@ -93,5 +95,35 @@ class Agenda extends Model
     public function allowsQuiz(): bool
     {
         return in_array($this->type, ["diklat", "pelatihan"]);
+    }
+
+    /**
+     * Daftar hadir boleh diubah (tambah/hapus) selama agenda belum selesai.
+     * Selesai = tanggal lewat, atau di hari-H jam selesai sudah lewat.
+     * Rapat tanpa jam selesai tetap bisa diubah sampai akhir hari.
+     */
+    public function isAttendanceEditable(): bool
+    {
+        if (! $this->event_date) {
+            return true;
+        }
+
+        $today = now()->startOfDay();
+
+        if ($this->event_date->isBefore($today)) {
+            return false;
+        }
+
+        if ($this->event_date->isAfter($today)) {
+            return true;
+        }
+
+        if (! empty($this->event_end_time)) {
+            $end = Carbon::parse($this->event_date->toDateString().' '.$this->event_end_time);
+
+            return now()->lessThanOrEqualTo($end);
+        }
+
+        return true;
     }
 }

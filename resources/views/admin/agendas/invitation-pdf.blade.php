@@ -11,8 +11,11 @@
         body, p, table, tr, td, div, img { margin: 0; padding: 0; }
         body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; line-height: 1.4; color: #111111; }
 
-        /* Kop: dalam alur dokumen + jarak tegas agar tak bertabrakan dengan isi. */
-        .letter-header { margin: 0 0 14pt 0; }
+        /* Kop sebagai header resmi full-bleed: margin negatif menariknya ke
+           tepi atas kertas (zona margin atas 20mm / sisi 25mm). In-flow
+           sehingga hanya tampil di halaman 1 dan isi mengalir alami
+           setelahnya tanpa tabrakan. */
+        .letter-header { margin: -20mm -25mm 14pt -25mm; }
         .letter-header img { display: block; width: 100%; }
 
         /* Isi: ritme paragraf konsisten. Aturan turunan memakai specificity

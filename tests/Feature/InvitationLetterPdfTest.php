@@ -45,7 +45,7 @@ class InvitationLetterPdfTest extends TestCase
         // Tanpa spasi manual untuk kolom.
         $this->assertStringNotContainsString('&nbsp;', $html);
 
-        // Seluruh data dinamis терrender.
+        // Seluruh data dinamis ter-render.
         $this->assertStringContainsString('925/RSAZRA/X/2026', $html);
         $this->assertStringContainsString('Undangan', $html);
         $this->assertStringContainsString('Direktur Rumah Sakit', $html);
@@ -70,5 +70,38 @@ class InvitationLetterPdfTest extends TestCase
         // Tepat 1 halaman: node /Page dikurangi node katalog /Pages.
         $pages = substr_count($pdf, '/Type /Page') - substr_count($pdf, '/Type /Pages');
         $this->assertSame(1, $pages);
+    }
+
+    public function test_rendered_pdf_has_balanced_margins_indents_and_full_bleed_header(): void
+    {
+        $agenda = $this->makeRapat();
+
+        // Render tanpa kompresi agar operator posisi teks bisa dibaca langsung.
+        $raw = app(InvitationLetterService::class)->toPdf($agenda)->output(['compress' => 0]);
+
+        preg_match_all(
+            '/BT\s+([\d.]+)\s+([\d.]+)\s+Td\s+\/\S+\s+[\d.]+\s+Tf\s+\[(.*?)\] TJ/',
+            $raw,
+            $matches,
+            PREG_SET_ORDER
+        );
+        $this->assertNotEmpty($matches, 'Tidak ada baris teks pada PDF.');
+
+        $xOf = function (string $needle) use ($matches): ?float {
+            foreach ($matches as $row) {
+                if (str_contains($row[3], $needle)) {
+                    return (float) $row[1];
+                }
+            }
+
+            return null;
+        };
+
+        // Margin kiri 25mm ≈ 70.9pt.
+        $this->assertEqualsWithDelta(70.9, $xOf('Kepada Yth.'), 1.0);
+        // Indent penerima 18pt ≈ 88.9pt.
+        $this->assertEqualsWithDelta(88.9, $xOf('Direktur Rumah Sakit'), 1.0);
+        // Kop full-bleed: gambar header di-draw sebagai XObject image.
+        $this->assertMatchesRegularExpression('/\/I\d+ Do/', $raw);
     }
 }

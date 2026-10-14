@@ -265,7 +265,6 @@
                                         @error('letter_number') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
-
                                 <div>
                                     <label for="material_file" class="block text-sm font-semibold text-gray-700 mb-2">
                                         <span x-text="'Materi ' + (type === 'diklat' ? 'Diklat' : (type === 'pelatihan' ? 'Pelatihan' : 'Rapat'))"></span>
@@ -279,6 +278,14 @@
                                     @error('material_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>
                             </div>
+                            <template x-if="type === 'rapat'">
+                                <div class="mt-4">
+                                    <label for="letter_recipients" class="block text-sm font-semibold text-gray-700 mb-2">Daftar Penerima (Kepada Yth.)</label>
+                                    <textarea name="letter_recipients" id="letter_recipients" rows="6" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">{{ old('letter_recipients', $suggestedRecipients ?? '') }}</textarea>
+                                    <p class="text-xs text-gray-400 mt-1">Satu penerima per baris. Terisi otomatis dengan daftar bawaan, bisa diubah atau dikosongkan (lalu penerima diambil dari peserta terdaftar).</p>
+                                    @error('letter_recipients') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                                </div>
+                            </template>
                             <script>
                                 function validateAgendaFile(input, errorId) {
                                     var MAX_BYTES = 2 * 1024 * 1024;

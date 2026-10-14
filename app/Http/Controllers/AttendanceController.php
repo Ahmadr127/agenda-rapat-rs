@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Agenda;
 use App\Models\AgendaQuestionAnswer;
 use App\Models\Employee;
+use App\Services\AttendanceService;
 use App\Services\SignatureStorageService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class AttendanceController extends Controller
 {
@@ -77,6 +79,13 @@ class AttendanceController extends Controller
                 ->toArray();
         }
 
+        // Status kunci + batas jam selesai (ISO dengan offset WIB) untuk UI:
+        // tombol hapus disembunyikan dan hilang otomatis saat jam lewat.
+        $attendanceLocked = ! $agenda->isAttendanceEditable();
+        $attendanceEndsAt = $agenda->event_end_time
+            ? Carbon::parse($agenda->event_date->toDateString().' '.$agenda->event_end_time)->toIso8601String()
+            : null;
+
         return view(
             'attendance.show',
             compact(
@@ -85,6 +94,8 @@ class AttendanceController extends Controller
                 'attendeesJson',
                 'questionsJson',
                 'pretestCompletedIds',
+                'attendanceLocked',
+                'attendanceEndsAt',
             ),
         );
     }
@@ -150,6 +161,41 @@ class AttendanceController extends Controller
                 'signature_url' => '/storage/'.$signaturePath,
                 'signed_at' => now()->format('H:i'),
             ],
+        ]);
+    }
+
+    /**
+     * Hapus kehadiran peserta (koreksi panitia). Hanya di hari-H,
+     * sehingga otomatis terkunci setelah agenda selesai.
+     */
+    public function unsign(
+        Request $request,
+        Agenda $agenda,
+        AttendanceService $attendance,
+    ) {
+        abort_unless($agenda->event_date->isToday(), 404);
+        abort_unless(
+            $agenda->isAttendanceEditable(),
+            403,
+            'Daftar hadir sudah dikunci karena agenda telah selesai.'
+        );
+
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+        ]);
+
+        $removed = $attendance->removeAttendee($agenda, (int) $request->employee_id);
+
+        if (! $removed) {
+            return response()->json(
+                ['message' => 'Data kehadiran tidak ditemukan.'],
+                422,
+            );
+        }
+
+        return response()->json([
+            'message' => 'Kehadiran berhasil dihapus.',
+            'employee_id' => (int) $request->employee_id,
         ]);
     }
 

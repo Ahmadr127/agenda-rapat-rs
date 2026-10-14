@@ -57,6 +57,7 @@ class AgendaRequest extends FormRequest
             "presenter_ids" => "nullable|array",
             "presenter_ids.*" => "nullable|distinct|exists:employees,id",
             "letter_number" => "nullable|string|max:100",
+            "letter_recipients" => "nullable|string|max:5000",
             "material_file" => "nullable|file|mimes:pdf|max:2048",
             "remove_material_file" => "nullable|boolean",
         ];

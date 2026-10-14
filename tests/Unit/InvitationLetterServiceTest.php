@@ -65,4 +65,31 @@ class InvitationLetterServiceTest extends TestCase
 
         $this->assertStringContainsString($leader->full_name, $data['recipients'][0]);
     }
+
+    public function test_custom_recipients_text_beats_employees_and_defaults(): void
+    {
+        $agenda = Agenda::factory()->create([
+            'event_date' => '2026-10-06',
+            'event_time' => '10:00',
+            'letter_recipients' => "Kepala Dinas Kesehatan\n\n  Puskesmas Bogor Utara  \r\n",
+        ]);
+        $agenda->employees()->attach($agenda->eventLeader->id);
+        $agenda->load(['room', 'unit', 'eventLeader', 'employees']);
+
+        $data = (new InvitationLetterService)->letterData($agenda);
+
+        $this->assertSame(['Kepala Dinas Kesehatan', 'Puskesmas Bogor Utara'], $data['recipients']);
+    }
+
+    public function test_parse_recipients_text_trims_and_skips_empty_lines(): void
+    {
+        $parsed = (new InvitationLetterService)->parseRecipientsText(" A\r\n\r\nB \n");
+
+        $this->assertSame(['A', 'B'], $parsed);
+        $this->assertSame([], (new InvitationLetterService)->parseRecipientsText(null));
+        $this->assertSame(
+            implode("\n", InvitationLetterService::DEFAULT_RECIPIENTS),
+            (new InvitationLetterService)->defaultRecipientsText()
+        );
+    }
 }

@@ -96,18 +96,6 @@
                                 </div>
 
                                 <div>
-                                    <label for="room_id" class="block text-sm font-semibold text-gray-700 mb-2">Ruangan</label>
-                                    <x-searchable-select
-                                        name="room_id"
-                                        search-url="{{ route('admin.rooms.search') }}"
-                                        :selected-id="old('room_id')"
-                                        placeholder="Cari ruangan..."
-                                        required
-                                    />
-                                    @error('room_id') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
-                                </div>
-
-                                <div>
                                     <label for="event_time" class="block text-sm font-semibold text-gray-700 mb-2">Pukul Mulai (24 jam)</label>
                                     @include('admin.agendas.partials._time-24-field', [
                                         'name' => 'event_time',
@@ -145,6 +133,18 @@
                                         @error('event_end_time') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
+
+                                <div>
+                                    <label for="room_id" class="block text-sm font-semibold text-gray-700 mb-2">Ruangan</label>
+                                    <x-searchable-select
+                                        name="room_id"
+                                        search-url="{{ route('admin.rooms.search') }}"
+                                        :selected-id="old('room_id')"
+                                        placeholder="Cari ruangan..."
+                                        required
+                                    />
+                                    @error('room_id') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                                </div>
 
                                 @if($canChooseUnit ?? false)
                                     <div>
@@ -263,6 +263,18 @@
                                         <input type="text" name="letter_number" id="letter_number" value="{{ old('letter_number', $suggestedNumber ?? '') }}" placeholder="cth. 001/RSAZRA/X/2026" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">
                                         <p class="text-xs text-gray-400 mt-1">Terisi otomatis, masih bisa diubah manual.</p>
                                         @error('letter_number') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                                    </div>
+                                </template>
+                                <template x-if="type === 'diklat' || type === 'pelatihan'">
+                                    <div>
+                                        <label for="letter_file" class="block text-sm font-semibold text-gray-700 mb-2">Surat Undangan (Upload Manual)</label>
+                                        <input type="file" name="letter_file" id="letter_file" accept=".pdf" onchange="validateAgendaFile(this, 'letter_file_error')" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20">
+                                        <div class="flex items-center justify-between gap-2 mt-1">
+                                            <p class="text-xs text-gray-400">Format PDF, maksimal 2MB.</p>
+                                            <button type="button" onclick="clearAgendaFile('letter_file', 'letter_file_error')" class="text-xs font-semibold text-rose-500 hover:text-rose-600 hover:underline flex-shrink-0">Hapus lampiran</button>
+                                        </div>
+                                        <p id="letter_file_error" class="hidden text-rose-500 text-xs font-medium mt-1.5"></p>
+                                        @error('letter_file') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                     </div>
                                 </template>
                                 <div>

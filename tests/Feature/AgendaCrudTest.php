@@ -690,4 +690,72 @@ class AgendaCrudTest extends TestCase
         $response->assertRedirect(route('admin.agendas.index'));
         $this->assertDatabaseCount('agendas', 1);
     }
+
+    public function test_store_diklat_with_letter_file_saves_path(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $bankSoal = $this->makeBankSoal(2);
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
+            $this->validDiklatData($bankSoal),
+            ['letter_file' => UploadedFile::fake()->create('surat.pdf', 1500, 'application/pdf')]
+        ));
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $path = Agenda::first()->letter_file_path;
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_store_rapat_ignores_letter_file_upload(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.agendas.store'), array_merge(
+            $this->validRapatData(),
+            ['letter_file' => UploadedFile::fake()->create('surat.pdf', 1500, 'application/pdf')]
+        ));
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $this->assertNull(Agenda::first()->letter_file_path);
+    }
+
+    public function test_update_diklat_can_remove_letter_file(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $bankSoal = $this->makeBankSoal(2);
+
+        $storedPath = UploadedFile::fake()
+            ->create('surat.pdf', 100, 'application/pdf')
+            ->store('agenda-files/1', 'public');
+
+        $agenda = Agenda::factory()->create([
+            'type' => 'diklat',
+            'bank_soal_id' => $bankSoal->id,
+            'event_time' => '09:00',
+            'event_end_time' => '12:00',
+            'letter_file_path' => $storedPath,
+        ]);
+        $this->snapshotQuestions($agenda);
+
+        $response = $this->actingAs($user)->put(route('admin.agendas.update', $agenda), [
+            'title' => $agenda->title,
+            'event_date' => $agenda->event_date->format('Y-m-d'),
+            'event_time' => '09:00',
+            'event_end_time' => '12:00',
+            'unit_id' => $agenda->unit_id,
+            'event_leader_id' => $agenda->event_leader_id,
+            'room_id' => $agenda->room_id,
+            'type' => 'diklat',
+            'bank_soal_id' => $bankSoal->id,
+            'remove_letter_file' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.agendas.index'));
+        $this->assertNull($agenda->fresh()->letter_file_path);
+        Storage::disk('public')->assertMissing($storedPath);
+    }
 }

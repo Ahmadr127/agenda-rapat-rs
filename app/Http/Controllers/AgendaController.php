@@ -135,7 +135,7 @@ class AgendaController extends Controller
 
         DB::transaction(function () use ($agendaData, $presenterIds, $request) {
             $agenda = Agenda::create($agendaData);
-            $agenda->update($this->storeAgendaFiles($request, $agenda));
+            $agenda->update($this->storeAgendaFiles($request, $agenda, false, $agendaData["type"] ?? null));
             $this->syncAgendaPresenters($agenda, $presenterIds);
             $this->syncAgendaQuestionsFromTemplate($agenda);
         });
@@ -224,8 +224,8 @@ class AgendaController extends Controller
         $agendaData = $this->buildAgendaData($validated, $letters, $agenda);
         $agendaData = array_merge(
             $agendaData,
-            $this->storeAgendaFiles($request, $agenda, true),
-            $this->removedAgendaFiles($request, $agenda),
+            $this->storeAgendaFiles($request, $agenda, true, $agendaData["type"] ?? null),
+            $this->removedAgendaFiles($request, $agenda, $agendaData["type"] ?? null),
         );
 
         $oldType = $agenda->type;
@@ -381,16 +381,27 @@ class AgendaController extends Controller
         }
 
         // Collect PDF files to merge in order:
-        // Surat Undangan (otomatis) → Materi → Daftar Kehadiran → Notulensi → Dokumentasi
+        // Surat Undangan → Materi → Daftar Kehadiran → Notulensi → Dokumentasi
         $pdfFiles = [];
 
-        // Surat undangan otomatis hanya ada untuk agenda rapat.
+        // Rapat: surat undangan digenerate otomatis. Diklat/pelatihan:
+        // file surat yang diupload manual.
         if ($agenda->type === 'rapat') {
             $invitationPdf = app(InvitationLetterService::class)->toPdf($agenda);
             $invitationTmp = tempnam(sys_get_temp_dir(), "agenda_invitation_") . ".pdf";
             file_put_contents($invitationTmp, $invitationPdf->output());
             $tempPaths[] = $invitationTmp;
             $pdfFiles[] = ["path" => $invitationTmp, "type" => "letter"];
+        } elseif ($agenda->letter_file_path) {
+            $letterPath = Storage::disk("public")->path(
+                $agenda->letter_file_path,
+            );
+            if (
+                file_exists($letterPath) &&
+                strtolower(pathinfo($letterPath, PATHINFO_EXTENSION)) === "pdf"
+            ) {
+                $pdfFiles[] = ["path" => $letterPath, "type" => "letter"];
+            }
         }
 
         if ($agenda->material_file_path) {
@@ -845,7 +856,7 @@ class AgendaController extends Controller
     private function buildAgendaData(array $validated, ?InvitationLetterService $letters = null, ?Agenda $agenda = null): array
     {
         $agendaData = collect($validated)
-            ->except(["material_file", "presenter_ids", "remove_material_file"])
+            ->except(["letter_file", "material_file", "presenter_ids", "remove_letter_file", "remove_material_file"])
             ->toArray();
 
         if ($agendaData["type"] === "rapat") {
@@ -886,8 +897,24 @@ class AgendaController extends Controller
         Request $request,
         Agenda $agenda,
         bool $replaceExisting = false,
+        ?string $effectiveType = null,
     ): array {
         $fileData = [];
+
+        // Upload manual khusus diklat/pelatihan; rapat selalu otomatis.
+        // Pakai tipe efektif (baru) agar ganti tipe + upload dalam sekali
+        // simpan tetap diproses.
+        $type = $effectiveType ?? $agenda->type;
+
+        if ($type !== "rapat" && $request->hasFile("letter_file")) {
+            if ($replaceExisting && $agenda->letter_file_path) {
+                Storage::disk("public")->delete($agenda->letter_file_path);
+            }
+
+            $fileData["letter_file_path"] = $request
+                ->file("letter_file")
+                ->store("agenda-files/" . $agenda->id, "public");
+        }
 
         if ($request->hasFile("material_file")) {
             if ($replaceExisting && $agenda->material_file_path) {
@@ -907,9 +934,16 @@ class AgendaController extends Controller
      * diunggah selalu menang — penghapusan hanya jalan bila tidak
      * ada upload pengganti pada field yang sama.
      */
-    private function removedAgendaFiles(Request $request, Agenda $agenda): array
+    private function removedAgendaFiles(Request $request, Agenda $agenda, ?string $effectiveType = null): array
     {
         $removed = [];
+
+        $type = $effectiveType ?? $agenda->type;
+
+        if ($type !== 'rapat' && $request->boolean('remove_letter_file') && ! $request->hasFile('letter_file') && $agenda->letter_file_path) {
+            Storage::disk('public')->delete($agenda->letter_file_path);
+            $removed['letter_file_path'] = null;
+        }
 
         if ($request->boolean('remove_material_file') && ! $request->hasFile('material_file') && $agenda->material_file_path) {
             Storage::disk('public')->delete($agenda->material_file_path);

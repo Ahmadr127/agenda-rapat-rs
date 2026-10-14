@@ -145,6 +145,37 @@
                         class="block text-center text-xs text-gray-400 hover:text-gray-600 hover:underline mt-2">Arsip file surat lama</a>
                 @endif
             </div>
+            @else
+            <div class="bg-white rounded-3xl border border-gray-100 p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-50 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" stroke-width="1.5"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">Surat Undangan</h4>
+                        <p class="text-xs text-gray-400">File PDF surat undangan (upload manual)</p>
+                    </div>
+                </div>
+                @if($agenda->letter_file_path)
+                    <a href="{{ Storage::url($agenda->letter_file_path) }}" target="_blank"
+                        class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-50 text-rose-600 text-sm font-bold hover:bg-rose-100 active:scale-[0.98] transition-all duration-200 w-full justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Lihat Surat Undangan
+                    </a>
+                @else
+                    <div class="px-5 py-3 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200 text-center">
+                        <p class="text-sm text-gray-400">Belum ada file surat</p>
+                    </div>
+                @endif
+            </div>
             @endif
 
             <div class="bg-white rounded-3xl border border-gray-100 p-6">

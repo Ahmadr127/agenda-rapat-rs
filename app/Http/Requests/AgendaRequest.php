@@ -58,7 +58,9 @@ class AgendaRequest extends FormRequest
             "presenter_ids.*" => "nullable|distinct|exists:employees,id",
             "letter_number" => "nullable|string|max:100",
             "letter_recipients" => "nullable|string|max:5000",
+            "letter_file" => "nullable|file|mimes:pdf|max:2048",
             "material_file" => "nullable|file|mimes:pdf|max:2048",
+            "remove_letter_file" => "nullable|boolean",
             "remove_material_file" => "nullable|boolean",
         ];
 
@@ -89,6 +91,8 @@ class AgendaRequest extends FormRequest
             "event_end_time.after" => "Pukul selesai harus setelah pukul mulai (gunakan format 24 jam, mis. mulai 09:32 maka selesai 12:32 bukan 00:32).",
             "material_file.max" => "Materi terlalu besar. Maksimal 2 MB.",
             "letter_number.max" => "Nomor surat maksimal 100 karakter.",
+            "letter_file.max" => "Surat undangan terlalu besar. Maksimal 2 MB.",
+            "letter_file.mimes" => "Surat undangan harus berformat PDF.",
             "material_file.mimes" => "Materi harus berformat PDF.",
         ];
     }

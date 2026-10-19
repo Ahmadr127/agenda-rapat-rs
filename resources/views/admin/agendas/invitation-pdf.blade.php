@@ -28,7 +28,7 @@
         .meta-sep { width: 12pt; }
         .letter-body p.mt { margin-top: 6pt; }
         .letter-body p.mt-sm { margin-top: 6pt; }
-        .letter-body p.recipient { margin: 0 0 1pt 18pt; }
+        .letter-body p.recipient { margin: 0 0 0pt 0pt; }
         table.letter-schedule { margin: 6pt 0 6pt 18pt; }
         .justify { text-align: justify; }
 

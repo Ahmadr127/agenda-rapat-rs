@@ -33,6 +33,8 @@
     @foreach($recipients as $recipient)
         <p class="recipient">{{ $recipient }}</p>
     @endforeach
+    {{-- Jarak "Daftar Penerima → Di tempat" diatur penuh oleh .mt-sm di
+         stylesheet tiap konteks (tanpa <br> agar ritme terkendali & rapat). --}}
     <p class="mt-sm">Di tempat</p>
 
     <p class="mt">Dengan hormat,</p>

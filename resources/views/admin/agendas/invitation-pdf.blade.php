@@ -26,9 +26,9 @@
         table.letter-meta td { vertical-align: top; padding: 2pt 3pt; }
         .meta-label { width: 120pt; }
         .meta-sep { width: 12pt; }
-        .letter-body p.mt { margin-top: 10pt; }
-        .letter-body p.mt-sm { margin-top: 4pt; }
-        .letter-body p.recipient { margin: 0 0 2pt 18pt; }
+        .letter-body p.mt { margin-top: 6pt; }
+        .letter-body p.mt-sm { margin-top: 6pt; }
+        .letter-body p.recipient { margin: 0 0 1pt 18pt; }
         table.letter-schedule { margin: 6pt 0 6pt 18pt; }
         .justify { text-align: justify; }
 

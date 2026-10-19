@@ -38,8 +38,11 @@
         .meta-sep { width: 14px; }
         table.letter-schedule { margin: 8px 0 8px 22px; }
         .mt { margin-top: 6px; }
-        .mt-sm { margin-top: 6px; }
-        .recipient { margin: 0 0 0px 0px; }
+        {{-- .mt-sm/.recipient/.yth polos tertimpa shorthand .letter-body p, makanya
+             memakai selector bercabang agar aturan di bawah benar-benar aktif. --}}
+        .letter-body p.yth { margin-bottom: 0; }
+        .letter-body p.mt-sm { margin-top: 15px;}
+        .letter-body p.recipient { margin: 0; line-height: 1.2; }
         .justify { text-align: justify; }
         table.letter-sign { width: 100%; margin-top: 20px; border-collapse: collapse; }
         .sign-spacer { width: 50%; }

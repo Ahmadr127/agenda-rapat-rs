@@ -26,9 +26,11 @@
         table.letter-meta td { vertical-align: top; padding: 2pt 3pt; }
         .meta-label { width: 120pt; }
         .meta-sep { width: 12pt; }
-        .letter-body p.mt { margin-top: 6pt; }
-        .letter-body p.mt-sm { margin-top: 6pt; }
-        .letter-body p.recipient { margin: 0 0 0pt 0pt; }
+        .letter-body p.mt { margin-top: 0pt; }
+        /* "Kepada Yth." → daftar nama: rapat, penerima rata kiri tanpa indent. */
+        .letter-body p.yth { margin-bottom: 0; }
+        .letter-body p.mt-sm { margin-top: 15pt; }
+        .letter-body p.recipient { margin: 0; line-height: 1.2; }
         table.letter-schedule { margin: 6pt 0 6pt 18pt; }
         .justify { text-align: justify; }
 

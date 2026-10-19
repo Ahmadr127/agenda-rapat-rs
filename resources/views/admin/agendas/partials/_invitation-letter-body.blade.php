@@ -29,12 +29,13 @@
     </table>
 
     {{-- 3. Penerima & salam pembuka --}}
-    <p class="mt">Kepada Yth.</p>
+    <p class="mt yth">Kepada Yth.</p>
     @foreach($recipients as $recipient)
         <p class="recipient">{{ $recipient }}</p>
     @endforeach
     {{-- Jarak "Daftar Penerima → Di tempat" diatur penuh oleh .mt-sm di
          stylesheet tiap konteks (tanpa <br> agar ritme terkendali & rapat). --}}
+    {{-- <br> --}}
     <p class="mt-sm">Di tempat</p>
 
     <p class="mt">Dengan hormat,</p>

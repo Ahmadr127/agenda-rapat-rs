@@ -100,8 +100,8 @@ class InvitationLetterPdfTest extends TestCase
 
         // Margin kiri 25mm ≈ 70.9pt.
         $this->assertEqualsWithDelta(70.9, $xOf('Kepada Yth.'), 1.0);
-        // Indent penerima 18pt ≈ 88.9pt.
-        $this->assertEqualsWithDelta(88.9, $xOf('Direktur Rumah Sakit'), 1.0);
+        // Penerima rata kiri sejajar "Kepada Yth." (tanpa indent).
+        $this->assertEqualsWithDelta(70.9, $xOf('Direktur Rumah Sakit'), 1.0);
         // Kop full-bleed: gambar header di-draw sebagai XObject image.
         $this->assertMatchesRegularExpression('/\/I\d+ Do/', $raw);
     }

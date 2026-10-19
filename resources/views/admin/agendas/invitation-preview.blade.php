@@ -37,9 +37,9 @@
         .meta-label { width: 150px; }
         .meta-sep { width: 14px; }
         table.letter-schedule { margin: 8px 0 8px 22px; }
-        .mt { margin-top: 8px; }
-        .mt-sm { margin-top: 8px; }
-        .recipient { margin: 0 0 2px 22px; }
+        .mt { margin-top: 6px; }
+        .mt-sm { margin-top: 6px; }
+        .recipient { margin: 0 0 1px 18px; }
         .justify { text-align: justify; }
         table.letter-sign { width: 100%; margin-top: 20px; border-collapse: collapse; }
         .sign-spacer { width: 50%; }

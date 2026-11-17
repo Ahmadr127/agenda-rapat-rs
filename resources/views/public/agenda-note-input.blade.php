@@ -31,6 +31,21 @@
 
         <div class="px-4 md:px-8 mt-6 space-y-5">
             {{-- Flash Messages --}}
+            @if($errors->any())
+                <div class="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 shadow-sm">
+                    <span class="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M12 3l9.2 16a.9.9 0 01-.8 1.3H3.6a.9.9 0 01-.8-1.3L12 3z"/></svg>
+                    </span>
+                    <div class="min-w-0">
+                        <p class="text-xs md:text-sm font-bold">Periksa kembali isian Anda</p>
+                        <ul class="mt-1.5 text-[11px] md:text-xs font-semibold text-rose-700 space-y-0.5 list-disc list-inside">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
             @if(session('success'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)" x-transition class="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 shadow-sm">
                     <span class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">

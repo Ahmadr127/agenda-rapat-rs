@@ -33,12 +33,11 @@ class PublicAgendaInputController extends Controller
 
         abort_unless($agenda->allowsNotes(), 403);
 
-        $validated = $request->validate([
-            "topic" => "required|string|max:255",
-            "decision" => "required|string",
-            "remarks" => "nullable|string",
-            "pj" => "required|string|max:255",
-        ]);
+        $validated = $request->validate(
+            $this->noteRules(),
+            $this->noteMessages(),
+            $this->noteAttributes(),
+        );
 
         $agenda->notes()->create($validated);
 
@@ -55,18 +54,51 @@ class PublicAgendaInputController extends Controller
 
         abort_unless($note->agenda_id === $agenda->id, 404);
 
-        $validated = $request->validate([
-            "topic" => "required|string|max:255",
-            "decision" => "required|string",
-            "remarks" => "nullable|string",
-            "pj" => "required|string|max:255",
-        ]);
+        $validated = $request->validate(
+            $this->noteRules(),
+            $this->noteMessages(),
+            $this->noteAttributes(),
+        );
 
         $note->update($validated);
 
         return redirect()
             ->route("agenda.note.index", $agenda)
             ->with("success", "Notulensi berhasil diperbarui.");
+    }
+
+    /** @return array<string, string> */
+    private function noteRules(): array
+    {
+        return [
+            "topic" => "required|string|max:255",
+            "decision" => "required|string",
+            "remarks" => "nullable|string",
+            "pj" => "required|string|max:255",
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function noteMessages(): array
+    {
+        return [
+            "topic.required" => "Topik wajib diisi.",
+            "decision.required" => "Pembahasan wajib diisi.",
+            "pj.required" => "Penanggung Jawab wajib diisi.",
+            "max" => ":attribute tidak boleh lebih dari :max karakter.",
+            "string" => ":attribute harus berupa teks.",
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function noteAttributes(): array
+    {
+        return [
+            "topic" => "Topik",
+            "decision" => "Pembahasan",
+            "remarks" => "Kesimpulan",
+            "pj" => "Penanggung Jawab",
+        ];
     }
 
     public function storeImage(Request $request, Agenda $agenda)

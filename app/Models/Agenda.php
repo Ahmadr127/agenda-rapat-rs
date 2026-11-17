@@ -97,11 +97,6 @@ class Agenda extends Model
         return in_array($this->type, ["diklat", "pelatihan"]);
     }
 
-    /**
-     * Daftar hadir boleh diubah (tambah/hapus) selama agenda belum selesai.
-     * Selesai = tanggal lewat, atau di hari-H jam selesai sudah lewat.
-     * Rapat tanpa jam selesai tetap bisa diubah sampai akhir hari.
-     */
     public function isAttendanceEditable(): bool
     {
         if (! $this->event_date) {

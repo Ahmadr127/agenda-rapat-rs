@@ -43,58 +43,66 @@
                 </div>
             @endif
 
-            <div class="grid gap-5 xl:grid-cols-2 items-start">
+            <div class="grid gap-5 xl:grid-cols-2 items-start" x-data="noteEditor()">
             {{-- Form tambah notulensi --}}
-            <section class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <section id="note-form-section" class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden scroll-mt-5">
                 <div class="px-5 md:px-6 pt-5 pb-4 border-b border-slate-100 flex items-center gap-3.5">
                     <span class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" x-show="!editing"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" x-show="editing" x-cloak style="display:none"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.89 1.13L6 18l.8-2.71a4.5 4.5 0 011.13-1.891L16.862 4.487z"/></svg>
                     </span>
                     <div class="min-w-0">
                         <h2 class="text-sm md:text-base font-extrabold text-slate-900">
-                            Tambah Notulensi
-                            <span class="ml-1.5 inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-primary/10 text-primary text-[11px] font-extrabold align-middle">#{{ $agenda->notes->count() + 1 }}</span>
+                            <span x-text="editing ? 'Edit Notulensi' : 'Tambah Notulensi'"></span>
+                            <span class="ml-1.5 inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-lg bg-primary/10 text-primary text-[11px] font-extrabold align-middle" x-show="!editing">#{{ $agenda->notes->count() + 1 }}</span>
                         </h2>
-                        <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5">Catat topik, pembahasan, kesimpulan, dan penanggung jawab</p>
+                        <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5" x-text="editing ? 'Perbarui catatan yang dipilih' : 'Catat topik, pembahasan, kesimpulan, dan penanggung jawab'"></p>
                     </div>
                 </div>
 
-                <form action="{{ route('agenda.note.store', $agenda) }}" method="POST" class="p-5 md:p-6 space-y-4">
+                <form x-ref="form" method="POST" :action="action" class="p-5 md:p-6 space-y-4">
                     @csrf
+                    <input type="hidden" name="_method" :value="method">
                     <div>
                         <label for="topic" class="block text-xs md:text-sm font-bold text-slate-700 mb-1.5">Topik <span class="text-rose-500">*</span></label>
-                        <input type="text" name="topic" id="topic" value="{{ old('topic') }}" placeholder="cth: Evaluasi pelayanan triwulan I" required
+                        <input type="text" name="topic" id="topic" x-ref="topic" x-model="form.topic" placeholder="cth: Evaluasi pelayanan triwulan I" required
                             class="block w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs md:text-sm font-medium text-slate-800 placeholder-slate-300 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition">
                         @error('topic') <p class="text-rose-500 text-[11px] md:text-xs font-semibold mt-1.5">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label for="decision" class="block text-xs md:text-sm font-bold text-slate-700 mb-1.5">Pembahasan <span class="text-rose-500">*</span></label>
-                        <textarea name="decision" id="decision" rows="3" placeholder="Tuliskan jalannya pembahasan..." required
-                            class="block w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs md:text-sm font-medium text-slate-800 placeholder-slate-300 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-y">{{ old('decision') }}</textarea>
+                        <textarea name="decision" id="decision" rows="3" x-model="form.decision" placeholder="Tuliskan jalannya pembahasan..." required
+                            class="block w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs md:text-sm font-medium text-slate-800 placeholder-slate-300 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-y"></textarea>
                         @error('decision') <p class="text-rose-500 text-[11px] md:text-xs font-semibold mt-1.5">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="grid sm:grid-cols-2 gap-4">
                         <div>
                             <label for="remarks" class="block text-xs md:text-sm font-bold text-slate-700 mb-1.5">Kesimpulan</label>
-                            <textarea name="remarks" id="remarks" rows="2" placeholder="Kesimpulan / tindak lanjut..."
-                                class="block w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs md:text-sm font-medium text-slate-800 placeholder-slate-300 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-y">{{ old('remarks') }}</textarea>
+                            <textarea name="remarks" id="remarks" rows="2" x-model="form.remarks" placeholder="Kesimpulan / tindak lanjut..."
+                                class="block w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs md:text-sm font-medium text-slate-800 placeholder-slate-300 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition resize-y"></textarea>
                             @error('remarks') <p class="text-rose-500 text-[11px] md:text-xs font-semibold mt-1.5">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="pj" class="block text-xs md:text-sm font-bold text-slate-700 mb-1.5">Penanggung Jawab (PJ) <span class="text-rose-500">*</span></label>
-                            <input type="text" name="pj" id="pj" value="{{ old('pj') }}" placeholder="Nama penanggung jawab" required
+                            <input type="text" name="pj" id="pj" x-model="form.pj" placeholder="Nama penanggung jawab" required
                                 class="block w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50/60 text-xs md:text-sm font-medium text-slate-800 placeholder-slate-300 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition">
                             @error('pj') <p class="text-rose-500 text-[11px] md:text-xs font-semibold mt-1.5">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
-                    <button type="submit"
-                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-primary text-white text-xs md:text-sm font-extrabold shadow-lg shadow-primary/25 hover:bg-primary-700 active:scale-[0.99] transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                        Simpan Notulensi
-                    </button>
+                    <div class="flex flex-col gap-2">
+                        <button type="submit"
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-primary text-white text-xs md:text-sm font-extrabold shadow-lg shadow-primary/25 hover:bg-primary-700 active:scale-[0.99] transition-all cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                            <span x-text="editing ? 'Simpan Perubahan' : 'Simpan Notulensi'"></span>
+                        </button>
+                        <button type="button" x-show="editing" x-cloak style="display:none" @click="cancelEdit()"
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-slate-200 bg-white text-xs md:text-sm font-bold text-slate-500 hover:text-slate-700 hover:border-slate-300 transition cursor-pointer">
+                            Batal Edit
+                        </button>
+                    </div>
                 </form>
             </section>
 
@@ -115,13 +123,21 @@
                     </div>
 
                     <ol class="divide-y divide-slate-100">
-                        @foreach($agenda->notes->sortByDesc('created_at') as $index => $note)
+                        @foreach($agenda->notes->sortByDesc('created_at')->values() as $index => $note)
                             <li class="p-5 md:p-6 flex gap-3.5">
                                 <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center text-xs font-extrabold">{{ $index + 1 }}</span>
                                 <div class="min-w-0 flex-1 space-y-2.5">
                                     <div class="flex items-start justify-between gap-2">
-                                        <h3 class="text-xs md:text-sm font-extrabold text-slate-900 leading-snug break-words">{{ $note->topic }}</h3>
-                                        <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 text-slate-400 text-[10px] font-bold">{{ $note->created_at->format('H:i') }}</span>
+                                        <h3 class="text-xs md:text-sm font-extrabold text-slate-900 leading-snug break-words min-w-0">{{ $note->topic }}</h3>
+                                        <div class="flex items-center gap-2 flex-shrink-0">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 text-slate-400 text-[10px] font-bold">{{ $note->created_at->format('H:i') }}</span>
+                                            <button type="button" @click="editNote({{ $index }})"
+                                                class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] md:text-[11px] font-bold text-slate-400 hover:text-primary hover:bg-primary/5 transition cursor-pointer"
+                                                title="Edit catatan ini">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                <span class="hidden sm:inline">Edit</span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="rounded-2xl bg-slate-50 border border-slate-100 px-3.5 py-3">
                                         <p class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Pembahasan</p>
@@ -159,6 +175,56 @@
             <p class="text-[10px] md:text-xs text-slate-300 font-medium">D-ASSA &middot; Digital Agenda &amp; Attendance System</p>
         </div>
     </div>
+
+    <script>
+        @php
+            $noteList = $agenda->notes->sortByDesc('created_at')->values()->map(fn ($n) => ['id' => $n->id, 'topic' => $n->topic, 'decision' => $n->decision, 'remarks' => $n->remarks, 'pj' => $n->pj])->values();
+            $createUrl = route('agenda.note.store', $agenda);
+            $updateTemplate = route('agenda.note.update', [$agenda, '__ID__']);
+            $initialForm = ['topic' => old('topic', ''), 'decision' => old('decision', ''), 'remarks' => old('remarks', ''), 'pj' => old('pj', '')];
+        @endphp
+        window.NOTE_LIST = @json($noteList);
+        window.CREATE_URL = @json($createUrl);
+        window.UPDATE_TEMPLATE = @json($updateTemplate);
+
+        function noteEditor() {
+            return {
+                editing: false,
+                noteId: null,
+                action: window.CREATE_URL,
+                method: 'POST',
+                form: @json($initialForm),
+
+                editNote(index) {
+                    const note = window.NOTE_LIST[index];
+                    if (!note) return;
+                    this.editing = true;
+                    this.noteId = note.id;
+                    this.form = {
+                        topic: note.topic ?? '',
+                        decision: note.decision ?? '',
+                        remarks: note.remarks ?? '',
+                        pj: note.pj ?? '',
+                    };
+                    this.action = window.UPDATE_TEMPLATE.replace('__ID__', note.id);
+                    this.method = 'PUT';
+                    this.$nextTick(() => {
+                        const el = document.getElementById('note-form-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        this.$refs.topic?.focus({ preventScroll: true });
+                    });
+                },
+
+                cancelEdit() {
+                    this.editing = false;
+                    this.noteId = null;
+                    this.action = window.CREATE_URL;
+                    this.method = 'POST';
+                    this.form = { topic: '', decision: '', remarks: '', pj: '' };
+                },
+            };
+        }
+    </script>
 </body>
 
 </html>

@@ -169,6 +169,10 @@ Route::post("/agenda/{agenda}/note", [
     PublicAgendaInputController::class,
     "storeNote",
 ])->name("agenda.note.store");
+Route::put("/agenda/{agenda}/note/{note}", [
+    PublicAgendaInputController::class,
+    "updateNote",
+])->name("agenda.note.update");
 Route::post("/agenda/{agenda}/image", [
     PublicAgendaInputController::class,
     "storeImage",

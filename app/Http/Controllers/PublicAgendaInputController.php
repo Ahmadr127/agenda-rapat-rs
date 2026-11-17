@@ -47,6 +47,28 @@ class PublicAgendaInputController extends Controller
             ->with("success", "Catatan berhasil ditambahkan.");
     }
 
+    public function updateNote(Request $request, Agenda $agenda, AgendaNote $note)
+    {
+        abort_unless($agenda->event_date->isToday(), 404);
+
+        abort_unless($agenda->allowsNotes(), 403);
+
+        abort_unless($note->agenda_id === $agenda->id, 404);
+
+        $validated = $request->validate([
+            "topic" => "required|string|max:255",
+            "decision" => "required|string",
+            "remarks" => "nullable|string",
+            "pj" => "required|string|max:255",
+        ]);
+
+        $note->update($validated);
+
+        return redirect()
+            ->route("agenda.note.index", $agenda)
+            ->with("success", "Notulensi berhasil diperbarui.");
+    }
+
     public function storeImage(Request $request, Agenda $agenda)
     {
         abort_unless($agenda->event_date->isToday(), 404);

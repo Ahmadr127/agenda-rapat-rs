@@ -67,6 +67,21 @@ class PublicAgendaInputController extends Controller
             ->with("success", "Notulensi berhasil diperbarui.");
     }
 
+    public function destroyNote(Agenda $agenda, AgendaNote $note)
+    {
+        abort_unless($agenda->event_date->isToday(), 404);
+
+        abort_unless($agenda->allowsNotes(), 403);
+
+        abort_unless($note->agenda_id === $agenda->id, 404);
+
+        $note->delete();
+
+        return redirect()
+            ->route("agenda.note.index", $agenda)
+            ->with("success", "Notulensi berhasil dihapus.");
+    }
+
     /** @return array<string, string> */
     private function noteRules(): array
     {

@@ -173,6 +173,10 @@ Route::put("/agenda/{agenda}/note/{note}", [
     PublicAgendaInputController::class,
     "updateNote",
 ])->name("agenda.note.update");
+Route::delete("/agenda/{agenda}/note/{note}", [
+    PublicAgendaInputController::class,
+    "destroyNote",
+])->name("agenda.note.destroy");
 Route::post("/agenda/{agenda}/image", [
     PublicAgendaInputController::class,
     "storeImage",

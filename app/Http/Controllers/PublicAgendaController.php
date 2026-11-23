@@ -10,6 +10,7 @@ class PublicAgendaController extends Controller
     {
         $agendas = Agenda::with(['room', 'unit'])
             ->whereDate('event_date', today())
+            ->where('scope', 'external')
             ->withCount([
                 'employees as signed_count' => function ($query) {
                     $query->whereNotNull(

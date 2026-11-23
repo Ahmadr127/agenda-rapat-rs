@@ -14,7 +14,7 @@
 </head>
 
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800">
-    <div class="pb-10">
+    <div class="pb-10" x-data="noteEditor()">
         {{-- Header --}}
         <x-agenda-header :agenda="$agenda">
             <x-slot:actions>
@@ -71,7 +71,7 @@
                     </button>
                 </div>
 
-                @if($agenda->notes->count() > 0)
+                @if(true)
                     <div class="px-5 md:px-6 py-6 overflow-x-auto">
                         <table class="w-full min-w-[680px] text-left border-collapse">
                             <thead>
@@ -87,7 +87,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100">
                                 @foreach($agenda->notes->sortByDesc('created_at')->values() as $index => $note)
-                                    <tr x-if="editingId !== {{ $note->id }}">
+                                    <tr x-show="editingId !== {{ $note->id }}">
                                         <td class="px-4 py-3.5 text-sm text-slate-400 font-medium">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3.5 text-sm font-semibold text-slate-900 break-words min-w-[140px]">{{ $note->topic }}</td>
                                         <td class="px-4 py-3.5 text-sm text-slate-600 break-words min-w-[160px]">{{ $note->decision }}</td>
@@ -116,7 +116,7 @@
                                         </td>
                                     </tr>
 
-                                    <tr x-if="editingId === {{ $note->id }}">
+                                    <tr x-show="editingId === {{ $note->id }}">
                                         <td class="px-4 py-3.5 text-sm text-slate-400 font-medium">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3.5">
                                             <input type="text" name="topic" value="{{ old('topic', $note->topic) }}" required
@@ -158,7 +158,16 @@
                                     </tr>
                                 @endforeach
 
-                                <tr x-if="editingId === 'new'">
+                                @if($agenda->notes->count() === 0)
+                                    <tr x-show="editingId !== 'new'">
+                                        <td colspan="7" class="px-4 py-12 text-center">
+                                            <p class="text-slate-500 font-bold text-xs md:text-sm">Belum ada catatan</p>
+                                            <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-1">Jadilah yang pertama menambahkan notulensi rapat ini</p>
+                                        </td>
+                                    </tr>
+                                @endif
+
+                                <tr x-show="editingId === 'new'">
                                     <td class="px-4 py-3.5 text-sm text-slate-400 font-medium">-</td>
                                     <td class="px-4 py-3.5">
                                         <input type="text" name="topic" x-model="form.topic" required placeholder="cth: Evaluasi pelayanan triwulan I"

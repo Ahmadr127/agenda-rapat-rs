@@ -22,7 +22,7 @@ class AgendaExternalMemberController extends Controller
                 'name' => $m->name,
                 'organization' => $m->organization,
                 'signature_url' => $m->signature_image_path
-                    ? Storage::disk('public')->url($m->signature_image_path)
+                    ? '/storage/' . ltrim($m->signature_image_path, '/')
                     : null,
                 'created_at' => $m->created_at?->format('H:i'),
             ])->values(),
@@ -57,7 +57,7 @@ class AgendaExternalMemberController extends Controller
                 'name' => $member->name,
                 'organization' => $member->organization,
                 'signature_url' => $member->signature_image_path
-                    ? Storage::disk('public')->url($member->signature_image_path)
+                    ? '/storage/' . ltrim($member->signature_image_path, '/')
                     : null,
                 'created_at' => $member->created_at?->format('H:i'),
             ],
@@ -99,7 +99,7 @@ class AgendaExternalMemberController extends Controller
                 'name' => $member->name,
                 'organization' => $member->organization,
                 'signature_url' => $member->signature_image_path
-                    ? Storage::disk('public')->url($member->signature_image_path)
+                    ? '/storage/' . ltrim($member->signature_image_path, '/')
                     : null,
                 'created_at' => $member->created_at?->format('H:i'),
             ],
@@ -134,7 +134,7 @@ class AgendaExternalMemberController extends Controller
                     'name' => $m->name,
                     'organization' => $m->organization,
                     'signature_url' => $m->signature_image_path
-                        ? Storage::disk('public')->url($m->signature_image_path)
+                        ? '/storage/' . ltrim($m->signature_image_path, '/')
                         : null,
                     'created_at' => $m->created_at?->format('H:i'),
                 ])->values(),
@@ -168,7 +168,7 @@ class AgendaExternalMemberController extends Controller
                 'id' => $member->id,
                 'name' => $member->name,
                 'organization' => $member->organization,
-                'signature_url' => Storage::disk('public')->url($member->signature_image_path),
+                'signature_url' => '/storage/' . ltrim($member->signature_image_path, '/'),
                 'created_at' => $member->created_at?->format('H:i'),
             ],
         ], 201);

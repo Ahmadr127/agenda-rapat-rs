@@ -142,12 +142,12 @@
                         </div>
                         
                         <div>
-                            <a href="{{ route('agenda.external-attend.index', $agenda) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-700 transition-all active:scale-95">
+                            <button type="button" @click="openExternalModal()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-700 transition-all active:scale-95">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0v.75H4.5v-.75z" />
                                 </svg>
                                 Absensi Tamu Eksternal
-                            </a>
+                            </button>
                         </div>
                         
                     </div>
@@ -237,7 +237,7 @@
                         <div class="min-w-0">
                             <h2 class="text-sm md:text-base font-extrabold text-slate-900">
                                 Sudah Hadir
-                                <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] md:text-[11px] font-extrabold align-middle" x-text="attendees.length"></span>
+                                <span class="ml-1.5 inline-flex items-center px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-600 text-[10px] md:text-[11px] font-extrabold align-middle" x-text="attendees.length + members.length"></span>
                             </h2>
                             <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5">Daftar peserta yang telah mengisi absensi</p>
                             <p x-show="attendanceLocked" x-cloak class="text-[11px] md:text-xs text-slate-400 font-semibold mt-1">Daftar hadir dikunci karena agenda sudah selesai.</p>
@@ -266,9 +266,25 @@
                                 </button>
                             </div>
                         </template>
+                        <template x-for="(m, index) in members" :key="'ext-' + m.id">
+                            <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-3 flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-xl bg-white border border-slate-100 text-primary flex items-center justify-center text-sm font-extrabold flex-shrink-0" x-text="(m.name || '?').charAt(0).toUpperCase()"></span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs md:text-[13px] font-bold text-slate-800 truncate" x-text="m.name"></p>
+                                    <p class="text-[10px] md:text-[11px] text-slate-400 font-medium truncate" x-text="m.organization || 'Tamu Eksternal'"></p>
+                                    <span class="inline-flex items-center mt-1 px-2 py-0.5 rounded-lg bg-white border border-slate-100 text-slate-400 text-[10px] font-bold" x-text="'Hadir pukul ' + (m.created_at || '')"></span>
+                                </div>
+                                <button type="button"
+                                    @click="$dispatch('open-signature-preview', { name: m.name, url: m.signature_url })"
+                                    class="flex-shrink-0 rounded-xl overflow-hidden border border-slate-200 bg-white cursor-zoom-in transition hover:ring-2 hover:ring-primary/40 active:scale-95"
+                                    :title="'Lihat tanda tangan ' + m.name">
+                                    <img :src="m.signature_url" :alt="'TTD ' + m.name" class="h-10 w-16 object-contain pointer-events-none">
+                                </button>
+                            </div>
+                        </template>
                     </div>
 
-                    <div x-show="attendees.length === 0" class="py-10 px-6 text-center">
+                    <div x-show="attendees.length === 0 && members.length === 0" class="py-10 px-6 text-center">
                         <span class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center mx-auto mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-1.053M18 8.625a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4.5 11.25a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0z" />
@@ -278,45 +294,6 @@
                         <p class="text-slate-400 text-[11px] md:text-xs mt-1">Gunakan pencarian di atas untuk melakukan absensi</p>
                     </div>
                 </section>
-                 <section class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div class="px-5 md:px-6 pt-5 pb-4 border-b border-slate-100">
-                    <h2 class="text-sm md:text-base font-extrabold text-slate-900">Tamu Terdaftar</h2>
-                    <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5" x-text="members.length + ' tamu'"></p>
-                </div>
-                <div class="px-5 md:px-6 py-6">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-left border-collapse">
-                            <thead>
-                                <tr class="bg-primary-700 text-white">
-                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider w-10">No</th>
-                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Nama</th>
-                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Organisasi</th>
-                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Tanda Tangan</th>
-                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Waktu</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <template x-for="(m, idx) in members" :key="m.id">
-                                    <tr>
-                                        <td class="px-4 py-3 text-sm text-slate-400" x-text="idx + 1"></td>
-                                        <td class="px-4 py-3 text-sm font-semibold text-slate-900" x-text="m.name"></td>
-                                        <td class="px-4 py-3 text-sm text-slate-600" x-text="m.organization || '—'"></td>
-                                        <td class="px-4 py-3">
-                                            <template x-if="m.signature_url">
-                                                <img :src="m.signature_url" alt="TTD" class="h-10 rounded border border-slate-200" />
-                                            </template>
-                                        </td>
-                                        <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap" x-text="m.created_at || '—'"></td>
-                                    </tr>
-                                </template>
-                                <tr x-show="members.length === 0">
-                                    <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-400">Belum ada tamu terdaftar.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
             </div>
 
             
@@ -464,6 +441,70 @@
 
         
 
+        {{-- External Attend Modal --}}
+        <div x-show="showExternalModal" x-cloak x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
+            @click.self="closeExternalModal()">
+            <div x-show="showExternalModal" x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="translate-y-8 opacity-0 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="translate-y-0 opacity-100 sm:scale-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="translate-y-0 opacity-100 sm:scale-100"
+                x-transition:leave-end="translate-y-8 opacity-0 sm:translate-y-0 sm:scale-95"
+                class="bg-white rounded-3xl w-full max-w-md p-5 md:p-6 shadow-2xl" @click.stop>
+                <div class="flex items-center gap-3 mb-1">
+                    <span class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0v.75H4.5v-.75z" />
+                        </svg>
+                    </span>
+                    <div class="min-w-0">
+                        <h3 class="text-sm md:text-base font-extrabold text-slate-900">Tanda Tangan Tamu Eksternal</h3>
+                        <p class="text-[11px] md:text-xs text-slate-400 font-medium">Isi nama, organisasi (opsional), lalu bubuhkan tanda tangan.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3 mt-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama</label>
+                        <input type="text" x-model="externalForm.name" required
+                            class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Organisasi (opsional)</label>
+                        <input type="text" x-model="externalForm.organization"
+                            class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" />
+                    </div>
+                </div>
+
+                <p class="text-[11px] md:text-xs text-slate-400 font-medium my-3">Bubuhkan tanda tangan pada kolom di bawah ini</p>
+                <div class="border-2 border-dashed border-slate-200 rounded-2xl mb-4 bg-slate-50 overflow-hidden focus-within:border-primary/40 transition-colors">
+                    <canvas id="ext-signature-canvas" class="w-full bg-white" style="height: 200px; touch-action: none;"></canvas>
+                </div>
+
+                <div class="flex gap-2.5">
+                    <button type="button" @click="clearExternalPad()"
+                        class="flex-1 px-4 py-3 border border-slate-200 text-slate-600 text-xs md:text-sm font-bold rounded-2xl hover:bg-slate-50 transition active:scale-[0.98]">
+                        Hapus
+                    </button>
+                    <button type="button" @click="submitExternal()" :disabled="externalSubmitting"
+                        class="flex-[2] inline-flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white text-xs md:text-sm font-extrabold rounded-2xl hover:bg-primary-700 shadow-lg shadow-primary/25 transition disabled:opacity-50 active:scale-[0.98]">
+                        <svg x-show="externalSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <span x-show="!externalSubmitting">Simpan Absensi</span>
+                        <span x-show="externalSubmitting">Menyimpan...</span>
+                    </button>
+                </div>
+
+                <button type="button" @click="closeExternalModal()"
+                    class="mt-2.5 w-full text-center text-[11px] md:text-xs text-slate-400 hover:text-slate-600 font-semibold transition py-1">
+                    Batal
+                </button>
+            </div>
+        </div>
+
         {{-- Success Toast --}}
         <div x-show="showToast" x-transition x-cloak
             class="fixed top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white pl-4 pr-5 py-3 rounded-2xl shadow-xl z-50 text-xs md:text-sm font-bold flex items-center gap-2.5 max-w-[calc(100vw-2rem)]">
@@ -503,6 +544,11 @@
                 selectedEmployee: null,
                 signaturePad: null,
                 submitting: false,
+                showExternalModal: false,
+                externalSubmitting: false,
+                externalSignaturePad: null,
+                externalForm: { name: '', organization: '' },
+                members: [],
                 showToast: false,
                 toastMessage: '',
                 showError: false,
@@ -511,6 +557,8 @@
                 attendanceLocked: @json($attendanceLocked ?? false),
                 attendanceEndsAt: @json($attendanceEndsAt ?? null),
                 agendaId: {{ $agenda->id }},
+                externalStoreUrl: '{{ route('agenda.external-attend.store', $agenda) }}',
+                externalIndexUrl: '{{ route('agenda.external-attend.index', $agenda) }}',
                 hasQuiz: {{ $agenda->allowsQuiz() && $agenda->agendaQuestions->count() > 0 ? 'true' : 'false' }},
 
                 // Pretest state
@@ -528,6 +576,18 @@
                         this.showSuccessToast('{{ Session::get('success') }}');
                     @endif
                     this.startLockWatcher();
+                    this.loadExternalMembers();
+                },
+
+                async loadExternalMembers() {
+                    try {
+                        const { data } = await axios.get(this.externalIndexUrl, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        this.members = data.items || [];
+                    } catch (e) {
+                        console.error(e);
+                    }
                 },
 
                 // Kunci daftar hadir otomatis saat jam selesai lewat
@@ -589,6 +649,70 @@
                     if (this.signaturePad) {
                         this.signaturePad.clear();
                         this.signaturePad = null;
+                    }
+                },
+
+                openExternalModal() {
+                    this.externalForm = { name: '', organization: '' };
+                    this.showExternalModal = true;
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            const canvas = document.getElementById('ext-signature-canvas');
+                            if (!canvas || !window.SignaturePad) return;
+                            const rect = canvas.getBoundingClientRect();
+                            canvas.width = rect.width || canvas.parentElement.offsetWidth;
+                            canvas.height = 200;
+                            this.externalSignaturePad = new window.SignaturePad(canvas, {
+                                backgroundColor: 'rgb(255,255,255)',
+                                penColor: 'rgb(0,0,0)',
+                            });
+                        }, 50);
+                    });
+                },
+
+                closeExternalModal() {
+                    this.showExternalModal = false;
+                    if (this.externalSignaturePad) {
+                        this.externalSignaturePad.clear();
+                        this.externalSignaturePad = null;
+                    }
+                },
+
+                clearExternalPad() {
+                    if (this.externalSignaturePad) this.externalSignaturePad.clear();
+                },
+
+                async submitExternal() {
+                    if (!this.externalForm.name.trim()) {
+                        this.showErrorToast('Nama wajib diisi.');
+                        return;
+                    }
+                    if (!this.externalSignaturePad || this.externalSignaturePad.isEmpty()) {
+                        this.showErrorToast('Tanda tangan wajib diisi.');
+                        return;
+                    }
+                    this.externalSubmitting = true;
+                    try {
+                        const blob = await (await fetch(this.externalSignaturePad.toDataURL('image/png'))).blob();
+                        const fd = new FormData();
+                        fd.append('name', this.externalForm.name);
+                        if (this.externalForm.organization) fd.append('organization', this.externalForm.organization);
+                        fd.append('signature', blob, 'signature.png');
+
+                        const { data } = await axios.post(this.externalStoreUrl, fd, {
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                        });
+
+                        if (data.item) this.members.unshift(data.item);
+                        this.externalForm = { name: '', organization: '' };
+                        this.clearExternalPad();
+                        this.showSuccessToast(data.message || 'Tanda tangan berhasil disimpan.');
+                        this.closeExternalModal();
+                    } catch (e) {
+                        this.showErrorToast('Gagal menyimpan tanda tangan.');
+                        console.error(e);
+                    } finally {
+                        this.externalSubmitting = false;
                     }
                 },
 

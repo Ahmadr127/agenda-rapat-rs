@@ -1,115 +1,140 @@
 <?php
 
 use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\AgendaExternalMemberController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeRecapController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicAgendaController;
-use App\Http\Controllers\UnitController;
 use App\Http\Controllers\PublicAgendaInputController;
 use App\Http\Controllers\PublicQuizController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public agenda list
-Route::get("/", [PublicAgendaController::class, "index"])->name("home");
+Route::get('/', [PublicAgendaController::class, 'index'])->name('home');
 
-Route::get("/dashboard", function () {
-    return view("dashboard");
+Route::get('/dashboard', function () {
+    return view('dashboard');
 })
-    ->middleware(["auth", "verified"])
-    ->name("dashboard");
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
-Route::middleware("auth")->group(function () {
-    Route::get("/profile", [ProfileController::class, "edit"])->name(
-        "profile.edit",
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name(
+        'profile.edit',
     );
-    Route::patch("/profile", [ProfileController::class, "update"])->name(
-        "profile.update",
+    Route::patch('/profile', [ProfileController::class, 'update'])->name(
+        'profile.update',
     );
-    Route::delete("/profile", [ProfileController::class, "destroy"])->name(
-        "profile.destroy",
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name(
+        'profile.destroy',
     );
 });
 
 // Admin routes
-Route::middleware("auth")
-    ->prefix("admin")
-    ->name("admin.")
+Route::middleware('auth')
+    ->prefix('admin')
+    ->name('admin.')
     ->group(function () {
-        Route::get("employees/search", [
+        Route::get('employees/search', [
             EmployeeController::class,
-            "search",
-        ])->name("employees.search");
-        Route::resource("employees", EmployeeController::class);
-        Route::get("employee-recaps", [
+            'search',
+        ])->name('employees.search');
+        Route::resource('employees', EmployeeController::class);
+        Route::get('employee-recaps', [
             EmployeeRecapController::class,
-            "index",
-        ])->name("employee-recaps.index");
-        Route::get("employee-recaps/export-csv", [
+            'index',
+        ])->name('employee-recaps.index');
+        Route::get('employee-recaps/export-csv', [
             EmployeeRecapController::class,
-            "exportCsv",
-        ])->name("employee-recaps.export-csv");
-        Route::get("employee-recaps/{employee}/agendas", [
+            'exportCsv',
+        ])->name('employee-recaps.export-csv');
+        Route::get('employee-recaps/{employee}/agendas', [
             EmployeeRecapController::class,
-            "agendas",
-        ])->name("employee-recaps.agendas.index");
-        Route::get("employee-recaps/{employee}/agendas/export-csv", [
+            'agendas',
+        ])->name('employee-recaps.agendas.index');
+        Route::get('employee-recaps/{employee}/agendas/export-csv', [
             EmployeeRecapController::class,
-            "exportAgendasCsv",
-        ])->name("employee-recaps.agendas.export-csv");
-        Route::get("rooms/search", [RoomController::class, "search"])->name(
-            "rooms.search",
+            'exportAgendasCsv',
+        ])->name('employee-recaps.agendas.export-csv');
+        Route::get('rooms/search', [RoomController::class, 'search'])->name(
+            'rooms.search',
         );
-        Route::resource("rooms", RoomController::class);
-        Route::get("agendas/export-csv", [
+        Route::resource('rooms', RoomController::class);
+        Route::get('agendas/export-csv', [
             AgendaController::class,
-            "exportCsv",
-        ])->name("agendas.export-csv");
-        Route::get("agendas/types/search", [
+            'exportCsv',
+        ])->name('agendas.export-csv');
+        Route::get('agendas/types/search', [
             AgendaController::class,
-            "searchTypes",
-        ])->name("agendas.types.search");
-        Route::resource("agendas", AgendaController::class);
-        Route::delete("agendas/{agenda}/attendees/{employee}", [
+            'searchTypes',
+        ])->name('agendas.types.search');
+        Route::resource('agendas', AgendaController::class);
+        Route::delete('agendas/{agenda}/attendees/{employee}', [
             AgendaController::class,
-            "removeAttendee",
-        ])->name("agendas.attendees.destroy");
-        Route::get("agendas/{agenda}/invitation-letter", [
+            'removeAttendee',
+        ])->name('agendas.attendees.destroy');
+
+        Route::get('agendas/{agenda}/external-members', [
+            AgendaExternalMemberController::class,
+            'index',
+        ])->name('agendas.external-members.index');
+
+        Route::post('agendas/{agenda}/external-members', [
+            AgendaExternalMemberController::class,
+            'store',
+        ])->name('agendas.external-members.store');
+
+        Route::put('agendas/{agenda}/external-members/{member}', [
+            AgendaExternalMemberController::class,
+            'update',
+        ])->name('agendas.external-members.update');
+
+        Route::delete('agendas/{agenda}/external-members/{member}', [
+            AgendaExternalMemberController::class,
+            'destroy',
+        ])->name('agendas.external-members.destroy');
+        Route::put('agendas/{agenda}/notes/{note}', [
             AgendaController::class,
-            "invitationLetter",
-        ])->name("agendas.invitation-letter");
-        Route::get("agendas/{agenda}/invitation-preview", [
+            'updateNote',
+        ])->name('agendas.notes.update');
+        Route::get('agendas/{agenda}/invitation-letter', [
             AgendaController::class,
-            "invitationPreview",
-        ])->name("agendas.invitation-preview");
-        Route::get("agendas/{agenda}/export-quiz-csv", [
+            'invitationLetter',
+        ])->name('agendas.invitation-letter');
+        Route::get('agendas/{agenda}/invitation-preview', [
             AgendaController::class,
-            "exportQuizCsv",
-        ])->name("agendas.export-quiz-csv");
-        Route::get("agendas/{agenda}/export-pdf", [
+            'invitationPreview',
+        ])->name('agendas.invitation-preview');
+        Route::get('agendas/{agenda}/export-quiz-csv', [
             AgendaController::class,
-            "exportPdf",
-        ])->name("agendas.export-pdf");
-        Route::get("units/search", [UnitController::class, "search"])->name(
-            "units.search",
+            'exportQuizCsv',
+        ])->name('agendas.export-quiz-csv');
+        Route::get('agendas/{agenda}/export-pdf', [
+            AgendaController::class,
+            'exportPdf',
+        ])->name('agendas.export-pdf');
+        Route::get('units/search', [UnitController::class, 'search'])->name(
+            'units.search',
         );
-        Route::resource("units", UnitController::class);
-        Route::get("bank-soals/search", [
+        Route::resource('units', UnitController::class);
+        Route::get('bank-soals/search', [
             BankSoalController::class,
-            "search",
-        ])->name("bank-soals.search");
-        Route::get("bank-soals/template", [
+            'search',
+        ])->name('bank-soals.search');
+        Route::get('bank-soals/template', [
             BankSoalController::class,
-            "downloadTemplate",
-        ])->name("bank-soals.template");
-        Route::resource("bank-soals", BankSoalController::class)->except(['show']);
-        Route::get("roles/search", [RoleController::class, "search"])->name(
-            "roles.search",
+            'downloadTemplate',
+        ])->name('bank-soals.template');
+        Route::resource('bank-soals', BankSoalController::class)->except(['show']);
+        Route::get('roles/search', [RoleController::class, 'search'])->name(
+            'roles.search',
         );
 
         // Account management — pemegang izin users.manage
@@ -131,55 +156,65 @@ Route::middleware("auth")
     });
 
 // Public attendance routes
-Route::get("/absen/{agenda}", [AttendanceController::class, "show"])->name(
-    "attendance.show",
+Route::get('/absen/{agenda}', [AttendanceController::class, 'show'])->name(
+    'attendance.show',
 );
-Route::post("/absen/{agenda}/sign", [
+Route::post('/absen/{agenda}/sign', [
     AttendanceController::class,
-    "sign",
-])->name("attendance.sign");
-Route::delete("/absen/{agenda}/sign", [
+    'sign',
+])->name('attendance.sign');
+Route::delete('/absen/{agenda}/sign', [
     AttendanceController::class,
-    "unsign",
-])->name("attendance.unsign");
-Route::post("/absen/{agenda}/pretest", [
+    'unsign',
+])->name('attendance.unsign');
+Route::post('/absen/{agenda}/pretest', [
     AttendanceController::class,
-    "storePretest",
-])->name("attendance.pretest.store");
+    'storePretest',
+])->name('attendance.pretest.store');
 
 // Public quiz routes (posttest)
-Route::get("/absen/{agenda}/quiz", [PublicQuizController::class, "show"])->name(
-    "attendance.quiz",
+Route::get('/absen/{agenda}/quiz', [PublicQuizController::class, 'show'])->name(
+    'attendance.quiz',
 );
-Route::post("/absen/{agenda}/quiz", [
+Route::post('/absen/{agenda}/quiz', [
     PublicQuizController::class,
-    "store",
-])->name("attendance.quiz.store");
+    'store',
+])->name('attendance.quiz.store');
 
 // Public agenda input (crowdsourced notes & images)
-Route::get("/agenda/{agenda}/note", [
+Route::get('/agenda/{agenda}/note', [
     PublicAgendaInputController::class,
-    "showNote",
-])->name("agenda.note.index");
-Route::get("/agenda/{agenda}/image", [
+    'showNote',
+])->name('agenda.note.index');
+Route::get('/agenda/{agenda}/image', [
     PublicAgendaInputController::class,
-    "showImage",
-])->name("agenda.image.index");
-Route::post("/agenda/{agenda}/note", [
+    'showImage',
+])->name('agenda.image.index');
+Route::post('/agenda/{agenda}/note', [
     PublicAgendaInputController::class,
-    "storeNote",
-])->name("agenda.note.store");
-Route::put("/agenda/{agenda}/note/{note}", [
+    'storeNote',
+])->name('agenda.note.store');
+Route::put('/agenda/{agenda}/note/{note}', [
     PublicAgendaInputController::class,
-    "updateNote",
-])->name("agenda.note.update");
-Route::delete("/agenda/{agenda}/note/{note}", [
+    'updateNote',
+])->name('agenda.note.update');
+Route::delete('/agenda/{agenda}/note/{note}', [
     PublicAgendaInputController::class,
-    "destroyNote",
-])->name("agenda.note.destroy");
-Route::post("/agenda/{agenda}/image", [
+    'destroyNote',
+])->name('agenda.note.destroy');
+Route::post('/agenda/{agenda}/image', [
     PublicAgendaInputController::class,
-    "storeImage",
-])->name("agenda.image.store");
+    'storeImage',
+])->name('agenda.image.store');
 
-require __DIR__ . "/auth.php";
+Route::get('/agenda/{agenda}/external-attend', [
+    AgendaExternalMemberController::class,
+    'publicShow',
+])->name('agenda.external-attend.index');
+
+Route::post('/agenda/{agenda}/external-attend', [
+    AgendaExternalMemberController::class,
+    'publicStore',
+])->name('agenda.external-attend.store');
+
+require __DIR__.'/auth.php';

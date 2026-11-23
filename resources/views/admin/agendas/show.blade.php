@@ -11,7 +11,7 @@
     </x-slot>
 
     <div class="space-y-6"
-        x-data="{ showImageModal: false, imageUrl: '', currentImageIndex: 0 }">
+        x-data="{ showImageModal: false, imageUrl: '', currentImageIndex: 0, editingNoteId: null }">
 
         {{-- ===== HEADER CARD ===== --}}
         <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">
@@ -525,6 +525,9 @@
                                     <th
                                         class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider">
                                         Tanggal</th>
+                                    <th
+                                        class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider">
+                                        Aksi</th>
                                 </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
@@ -537,6 +540,42 @@
                                         <td class="px-6 py-3.5 text-sm text-gray-500">{{ $note->pj ?? '—' }}</td>
                                         <td class="px-6 py-3.5 text-sm text-gray-500 whitespace-nowrap">
                                             {{ $note->created_at->format('H:i') }}</td>
+                                        <td class="px-6 py-3.5 text-center">
+                                            <button type="button" @click="editingNoteId = {{ $note->id }}"
+                                                class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr x-if="editingNoteId === {{ $note->id }}" x-cloak>
+                                        <td class="px-6 py-3.5 text-sm text-gray-400 font-medium">{{ $index + 1 }}</td>
+                                        <td class="px-6 py-3.5">
+                                            <input type="text" name="topic" value="{{ old('topic', $note->topic) }}" class="block w-full px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-800">
+                                            @error('topic') <p class="text-rose-500 text-xs font-medium mt-1">{{ $message }}</p> @enderror
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <textarea name="decision" rows="2" class="block w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500">{{ old('decision', $note->decision) }}</textarea>
+                                            @error('decision') <p class="text-rose-500 text-xs font-medium mt-1">{{ $message }}</p> @enderror
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <textarea name="remarks" rows="2" class="block w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500">{{ old('remarks', $note->remarks) }}</textarea>
+                                            @error('remarks') <p class="text-rose-500 text-xs font-medium mt-1">{{ $message }}</p> @enderror
+                                        </td>
+                                        <td class="px-6 py-3.5">
+                                            <input type="text" name="pj" value="{{ old('pj', $note->pj) }}" class="block w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500">
+                                            @error('pj') <p class="text-rose-500 text-xs font-medium mt-1">{{ $message }}</p> @enderror
+                                        </td>
+                                        <td class="px-6 py-3.5 text-sm text-gray-500 whitespace-nowrap">
+                                            {{ $note->created_at->format('H:i') }}</td>
+                                        <td class="px-6 py-3.5 text-center">
+                                            <form action="{{ route('admin.agendas.notes.update', [$agenda, $note]) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-md shadow-primary/20 hover:bg-primary-700 transition-all">Simpan</button>
+                                                <button type="button" @click="editingNoteId = null" class="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-600 text-xs font-bold hover:bg-gray-200 transition-colors">Batal</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>
@@ -557,6 +596,146 @@
                 @endif
             </div>
         @endif
+
+        {{-- ===== EXTERNAL MEMBERS SECTION ===== --}}
+        <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden"
+            x-data="externalMembersApp()" x-init="load()">
+            <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-gray-900">Anggota Eksternal</h3>
+                    <p class="text-sm text-gray-400 mt-0.5" x-text="members.length + ' tamu terdaftar'"></p>
+                </div>
+                <a href="{{ route('agenda.external-attend.index', $agenda) }}" target="_blank"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors">
+                    Link Tanda Tangan Tamu
+                </a>
+            </div>
+            <div class="px-8 py-6 space-y-4">
+                <!-- Add form -->
+                <form @submit.prevent="add()" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Nama</label>
+                        <input type="text" x-model="form.name" required
+                            class="block w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Organisasi (opsional)</label>
+                        <input type="text" x-model="form.organization"
+                            class="block w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Tanda Tangan (gambar)</label>
+                        <input type="file" x-ref="sigFile" accept="image/*"
+                            class="block w-full text-xs text-gray-600" />
+                    </div>
+                    <div class="md:col-span-3">
+                        <button type="submit" :disabled="saving"
+                            class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-md shadow-primary/20 hover:bg-primary-700 transition-all disabled:opacity-50">
+                            <span x-text="saving ? 'Menyimpan...' : 'Tambah Anggota'"></span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- List -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-primary-700 text-white">
+                                <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider w-10">No</th>
+                                <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Nama</th>
+                                <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Organisasi</th>
+                                <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Tanda Tangan</th>
+                                <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Waktu</th>
+                                <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="(m, idx) in members" :key="m.id">
+                                <tr>
+                                    <td class="px-4 py-3 text-sm text-slate-400" x-text="idx + 1"></td>
+                                    <td class="px-4 py-3 text-sm font-semibold text-slate-900" x-text="m.name"></td>
+                                    <td class="px-4 py-3 text-sm text-slate-600" x-text="m.organization || '—'"></td>
+                                    <td class="px-4 py-3">
+                                        <template x-if="m.signature_url">
+                                            <img :src="m.signature_url" alt="TTD" class="h-10 rounded border border-slate-200" />
+                                        </template>
+                                        <template x-if="!m.signature_url">
+                                            <span class="text-xs text-slate-400">—</span>
+                                        </template>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap" x-text="m.created_at || '—'"></td>
+                                    <td class="px-4 py-3 text-right">
+                                        <button type="button" @click="remove(m.id)"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] md:text-[11px] font-bold text-slate-400 hover:text-red-500 hover:bg-red-50 transition cursor-pointer">
+                                            Hapus
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr x-show="members.length === 0">
+                                <td colspan="6" class="px-4 py-6 text-center text-sm text-slate-400">Belum ada anggota eksternal.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function externalMembersApp() {
+                return {
+                    members: [],
+                    saving: false,
+                    form: { name: '', organization: '' },
+
+                    async load() {
+                        try {
+                            const { data } = await axios.get('{{ route('admin.agendas.external-members.index', $agenda) }}');
+                            this.members = data.items || [];
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    },
+
+                    async add() {
+                        this.saving = true;
+                        try {
+                            const fd = new FormData();
+                            fd.append('name', this.form.name);
+                            if (this.form.organization) fd.append('organization', this.form.organization);
+                            const file = this.$refs.sigFile?.files?.[0];
+                            if (file) fd.append('signature', file);
+
+                            const { data } = await axios.post('{{ route('admin.agendas.external-members.store', $agenda) }}', fd, {
+                                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                            });
+
+                            this.members.unshift(data.item);
+                            this.form = { name: '', organization: '' };
+                            if (this.$refs.sigFile) this.$refs.sigFile.value = '';
+                        } catch (e) {
+                            alert('Gagal menambah anggota.');
+                            console.error(e);
+                        } finally {
+                            this.saving = false;
+                        }
+                    },
+
+                    async remove(id) {
+                        if (!confirm('Hapus anggota ini?')) return;
+                        try {
+                            await axios.delete('{{ url('admin/agendas/' . $agenda->id . '/external-members') }}/' + id, {
+                                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                            });
+                            this.members = this.members.filter((m) => m.id !== id);
+                        } catch (e) {
+                            alert('Gagal menghapus.');
+                            console.error(e);
+                        }
+                    },
+                };
+            }
+        </script>
 
         {{-- ===== DOCUMENTATION IMAGES SECTION ===== --}}
         <div class="bg-white rounded-3xl border border-gray-100 overflow-hidden">

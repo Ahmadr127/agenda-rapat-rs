@@ -40,6 +40,13 @@
                 <td class="text-white/60 py-0.5 pr-1 align-top">:</td>
                 <td class="text-white font-semibold py-0.5 break-words">{{ $agenda->eventLeader?->full_name ?? '-' }}</td>
             </tr>
+            @if($agenda->type === 'rapat')
+                <tr class="text-[10px] md:text-[11px]">
+                    <td class="text-white/60 font-medium py-0.5 pr-3 whitespace-nowrap align-top">Lingkup</td>
+                    <td class="text-white/60 py-0.5 pr-1 align-top">:</td>
+                    <td class="text-white font-semibold py-0.5 break-words">{{ $agenda->scope === 'external' ? 'Rapat Eksternal' : 'Rapat Internal' }}</td>
+                </tr>
+            @endif
             <tr class="text-[10px] md:text-[11px]">
                 <td class="text-white/60 font-medium py-0.5 pr-3 whitespace-nowrap align-top">Deskripsi</td>
                 <td class="text-white/60 py-0.5 pr-1 align-top">:</td>

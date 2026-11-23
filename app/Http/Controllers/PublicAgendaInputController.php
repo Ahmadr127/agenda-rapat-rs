@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agenda;
-use App\Models\AgendaImage;
 use App\Models\AgendaNote;
+use App\Support\AgendaNote as AgendaNoteRules;
 use Illuminate\Http\Request;
 
 class PublicAgendaInputController extends Controller
@@ -13,18 +13,18 @@ class PublicAgendaInputController extends Controller
     {
         abort_unless($agenda->event_date->isToday(), 404);
 
-        $agenda->load(["room", "notes"]);
+        $agenda->load(['room', 'notes']);
 
-        return view("public.agenda-note-input", compact("agenda"));
+        return view('public.agenda-note-input', compact('agenda'));
     }
 
     public function showImage(Agenda $agenda)
     {
         abort_unless($agenda->event_date->isToday(), 404);
 
-        $agenda->load(["room", "images"]);
+        $agenda->load(['room', 'images']);
 
-        return view("public.agenda-image-input", compact("agenda"));
+        return view('public.agenda-image-input', compact('agenda'));
     }
 
     public function storeNote(Request $request, Agenda $agenda)
@@ -34,16 +34,16 @@ class PublicAgendaInputController extends Controller
         abort_unless($agenda->allowsNotes(), 403);
 
         $validated = $request->validate(
-            $this->noteRules(),
-            $this->noteMessages(),
-            $this->noteAttributes(),
+            AgendaNoteRules::rules(),
+            AgendaNoteRules::messages(),
+            AgendaNoteRules::attributes(),
         );
 
         $agenda->notes()->create($validated);
 
         return redirect()
-            ->route("agenda.note.index", $agenda)
-            ->with("success", "Catatan berhasil ditambahkan.");
+            ->route('agenda.note.index', $agenda)
+            ->with('success', 'Catatan berhasil ditambahkan.');
     }
 
     public function updateNote(Request $request, Agenda $agenda, AgendaNote $note)
@@ -55,16 +55,16 @@ class PublicAgendaInputController extends Controller
         abort_unless($note->agenda_id === $agenda->id, 404);
 
         $validated = $request->validate(
-            $this->noteRules(),
-            $this->noteMessages(),
-            $this->noteAttributes(),
+            AgendaNoteRules::rules(),
+            AgendaNoteRules::messages(),
+            AgendaNoteRules::attributes(),
         );
 
         $note->update($validated);
 
         return redirect()
-            ->route("agenda.note.index", $agenda)
-            ->with("success", "Notulensi berhasil diperbarui.");
+            ->route('agenda.note.index', $agenda)
+            ->with('success', 'Notulensi berhasil diperbarui.');
     }
 
     public function destroyNote(Agenda $agenda, AgendaNote $note)
@@ -78,42 +78,8 @@ class PublicAgendaInputController extends Controller
         $note->delete();
 
         return redirect()
-            ->route("agenda.note.index", $agenda)
-            ->with("success", "Notulensi berhasil dihapus.");
-    }
-
-    /** @return array<string, string> */
-    private function noteRules(): array
-    {
-        return [
-            "topic" => "required|string|max:255",
-            "decision" => "required|string",
-            "remarks" => "nullable|string",
-            "pj" => "required|string|max:255",
-        ];
-    }
-
-    /** @return array<string, string> */
-    private function noteMessages(): array
-    {
-        return [
-            "topic.required" => "Topik wajib diisi.",
-            "decision.required" => "Pembahasan wajib diisi.",
-            "pj.required" => "Penanggung Jawab wajib diisi.",
-            "max" => ":attribute tidak boleh lebih dari :max karakter.",
-            "string" => ":attribute harus berupa teks.",
-        ];
-    }
-
-    /** @return array<string, string> */
-    private function noteAttributes(): array
-    {
-        return [
-            "topic" => "Topik",
-            "decision" => "Pembahasan",
-            "remarks" => "Kesimpulan",
-            "pj" => "Penanggung Jawab",
-        ];
+            ->route('agenda.note.index', $agenda)
+            ->with('success', 'Notulensi berhasil dihapus.');
     }
 
     public function storeImage(Request $request, Agenda $agenda)
@@ -121,23 +87,23 @@ class PublicAgendaInputController extends Controller
         abort_unless($agenda->event_date->isToday(), 404);
 
         $request->validate([
-            "images" => "required|array",
-            "images.*" => "image|mimes:jpg,jpeg,png,webp|max:3072",
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:3072',
         ]);
 
         $count = 0;
-        foreach ($request->file("images") as $file) {
-            $path = $file->store("agenda-images/" . $agenda->id, "public");
-            $agenda->images()->create(["image_path" => $path]);
+        foreach ($request->file('images') as $file) {
+            $path = $file->store('agenda-images/'.$agenda->id, 'public');
+            $agenda->images()->create(['image_path' => $path]);
             $count++;
         }
 
         if ($request->wantsJson()) {
-            return response()->json(["success" => true, "count" => $count]);
+            return response()->json(['success' => true, 'count' => $count]);
         }
 
         return redirect()
-            ->route("agenda.image.index", $agenda)
-            ->with("success", $count . " foto berhasil diunggah.");
+            ->route('agenda.image.index', $agenda)
+            ->with('success', $count.' foto berhasil diunggah.');
     }
 }

@@ -26,7 +26,12 @@ class AttendanceController extends Controller
 
         $signedEmployeeIds = $signedEmployees->pluck('id')->toArray();
 
-        $allEmployees = Employee::with('unit')->orderBy('full_name')->get();
+        // Bila agenda rapat sudah punya daftar anggota (hasil input
+        // admin), pencarian kehadiran hanya dari anggota tersebut.
+        // Agenda tanpa anggota berlaku terbuka untuk semua pegawai.
+        $allEmployees = $agenda->hasMemberRoster()
+            ? $agenda->employees()->with('unit')->orderBy('full_name')->get()
+            : Employee::with('unit')->orderBy('full_name')->get();
 
         $employeesJson = $allEmployees->map(function ($e) use (
             $signedEmployeeIds,
@@ -111,6 +116,19 @@ class AttendanceController extends Controller
             'employee_id' => 'required|exists:employees,id',
             'signature' => 'required|file|image|mimes:png,jpg,jpeg|max:2048',
         ]);
+
+        if ($agenda->hasMemberRoster()) {
+            $isMember = $agenda->employees()
+                ->where('employee_id', $request->employee_id)
+                ->exists();
+
+            if (! $isMember) {
+                return response()->json(
+                    ['message' => 'Anda bukan anggota rapat ini.'],
+                    403,
+                );
+            }
+        }
 
         $pivot = $agenda
             ->employees()

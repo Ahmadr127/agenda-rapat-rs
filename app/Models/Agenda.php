@@ -14,26 +14,28 @@ class Agenda extends Model
     use HasFactory;
 
     protected $fillable = [
-        "title",
-        "description",
-        "unit_id",
-        "event_date",
-        "event_time",
-        "event_end_time",
-        "event_leader_id",
-        "room_id",
-        "letter_file_path",
-        "material_file_path",
-        "letter_number",
-        "letter_recipients",
-        "type",
-        "bank_soal_id",
+        'title',
+        'description',
+        'unit_id',
+        'event_date',
+        'event_time',
+        'event_end_time',
+        'event_leader_id',
+        'room_id',
+        'letter_file_path',
+        'material_file_path',
+        'letter_number',
+        'letter_recipients',
+        'type',
+        'bank_soal_id',
+        'scope',
+        'has_members',
     ];
 
     protected function casts(): array
     {
         return [
-            "event_date" => "date",
+            'event_date' => 'date',
         ];
     }
 
@@ -49,21 +51,21 @@ class Agenda extends Model
 
     public function eventLeader(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, "event_leader_id");
+        return $this->belongsTo(Employee::class, 'event_leader_id');
     }
 
     public function presenters(): BelongsToMany
     {
-        return $this->belongsToMany(Employee::class, "agenda_presenters")
-            ->withPivot("sort_order")
+        return $this->belongsToMany(Employee::class, 'agenda_presenters')
+            ->withPivot('sort_order')
             ->withTimestamps()
-            ->orderBy("agenda_presenters.sort_order");
+            ->orderBy('agenda_presenters.sort_order');
     }
 
     public function employees(): BelongsToMany
     {
-        return $this->belongsToMany(Employee::class, "agenda_employee")
-            ->withPivot("signature_image_path")
+        return $this->belongsToMany(Employee::class, 'agenda_employee')
+            ->withPivot('signature_image_path')
             ->withTimestamps();
     }
 
@@ -75,6 +77,11 @@ class Agenda extends Model
     public function images(): HasMany
     {
         return $this->hasMany(AgendaImage::class);
+    }
+
+    public function externalMembers(): HasMany
+    {
+        return $this->hasMany(AgendaExternalMember::class);
     }
 
     public function agendaQuestions(): HasMany
@@ -89,12 +96,22 @@ class Agenda extends Model
 
     public function allowsNotes(): bool
     {
-        return $this->type === "rapat";
+        return $this->type === 'rapat';
     }
 
     public function allowsQuiz(): bool
     {
-        return in_array($this->type, ["diklat", "pelatihan"]);
+        return in_array($this->type, ['diklat', 'pelatihan']);
+    }
+
+    /**
+     * True bila agenda rapat punya daftar anggota yang definitif
+     * (hasil input admin). Agenda tanpa anggota (`has_members` = false)
+     * berlaku terbuka: semua pegawai boleh absen.
+     */
+    public function hasMemberRoster(): bool
+    {
+        return (bool) $this->has_members;
     }
 
     public function isAttendanceEditable(): bool

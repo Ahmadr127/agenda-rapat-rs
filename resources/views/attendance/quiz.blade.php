@@ -406,7 +406,7 @@
                                 this.posttestCompletedIds.push(this.selectedEmployee.id);
                                 this.clearDraft();
                                 this.draftRestored = 0;
-                                window.location.href = '{{ route("attendance.show", $agenda) }}';
+                                window.location.href = '{{ route('attendance.show', $agenda) }}';
                             } else {
                                 this.showErrorToast(data.message || 'Terjadi kesalahan.');
                             }

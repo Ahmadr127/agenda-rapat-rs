@@ -101,6 +101,11 @@
                                     </div>
                                     <div class="mt-2.5 flex items-center justify-end gap-1.5 flex-wrap">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-extrabold uppercase tracking-wide {{ $typeBadge }}">{{ ucfirst($agenda->type) }}</span>
+                                        @if($agenda->type === 'rapat')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-extrabold uppercase tracking-wide {{ $agenda->scope === 'external' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600' }}">
+                                                {{ $agenda->scope === 'external' ? 'Rapat Eksternal' : 'Rapat Internal' }}
+                                            </span>
+                                        @endif
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[9px] md:text-[10px] font-bold bg-emerald-50 text-emerald-600">
                                             <svg class="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
                                             {{ $agenda->signed_count }} hadir

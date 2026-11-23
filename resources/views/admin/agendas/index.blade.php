@@ -127,7 +127,14 @@
             <tr class="group transition-colors hover:bg-primary-50/40 {{ $rowBg }}">
                 <td class="px-3 py-2 text-sm text-black font-medium">{{ $agendas->firstItem() + $index }}</td>
                 <td class="px-3 py-2">
-                                <a href="{{ route('admin.agendas.show', $agenda) }}" class="text-sm font-semibold text-black group-hover:text-primary transition-colors">{{ $agenda->title }}</a>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('admin.agendas.show', $agenda) }}" class="text-sm font-semibold text-black group-hover:text-primary transition-colors">{{ $agenda->title }}</a>
+                                    @if($agenda->type === 'rapat')
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold {{ $agenda->scope === 'external' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600' }}">
+                                            {{ $agenda->scope === 'external' ? 'Rapat Eksternal' : 'Rapat Internal' }}
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-3 py-2 text-sm text-black whitespace-pre-wrap">{{ $agenda->description ?? '-' }}</td>
                             <td class="px-3 py-2 text-sm text-black">{{ $agenda->event_date->translatedFormat('d M Y') }}</td>

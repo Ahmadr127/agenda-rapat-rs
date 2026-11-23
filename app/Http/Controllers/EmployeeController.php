@@ -24,6 +24,10 @@ class EmployeeController extends Controller
                 'items' => $employee ? [[
                     'id' => $employee->id,
                     'name' => $employee->full_name,
+                    'nip' => $employee->nip,
+                    'job_position' => $employee->job_position,
+                    'structural_role' => $employee->structural_role,
+                    'profession' => $employee->profession,
                 ]] : [],
                 'has_more' => false,
             ]);
@@ -42,7 +46,10 @@ class EmployeeController extends Controller
             ->when($search !== '', function ($query) use ($search, $operator) {
                 $query->where(function ($query) use ($search, $operator) {
                     $query->where('full_name', $operator, "%{$search}%")
-                        ->orWhere('nip', $operator, "%{$search}%");
+                        ->orWhere('nip', $operator, "%{$search}%")
+                        ->orWhere('job_position', $operator, "%{$search}%")
+                        ->orWhere('structural_role', $operator, "%{$search}%")
+                        ->orWhere('profession', $operator, "%{$search}%");
                 });
             })
             ->simplePaginate(10);
@@ -52,6 +59,10 @@ class EmployeeController extends Controller
                 ->map(fn (Employee $employee) => [
                     'id' => $employee->id,
                     'name' => $employee->full_name,
+                    'nip' => $employee->nip,
+                    'job_position' => $employee->job_position,
+                    'structural_role' => $employee->structural_role,
+                    'profession' => $employee->profession,
                 ])
                 ->values(),
             'has_more' => $employees->hasMorePages(),

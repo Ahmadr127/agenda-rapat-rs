@@ -23,6 +23,21 @@ class AttendanceService
             return false;
         }
 
+        if ($agenda->hasMemberRoster()) {
+            // Agenda rapat dengan daftar anggota: koreksi hanya menghapus
+            // tanda tangan & jawaban kuis, anggota tetap tercatat sebagai
+            // anggota (tidak boleh memutus keanggotaan lewat hapus pivot).
+            $agenda->employees()->updateExistingPivot($employeeId, [
+                'signature_image_path' => null,
+            ]);
+
+            AgendaQuestionAnswer::where('agenda_id', $agenda->id)
+                ->where('employee_id', $employeeId)
+                ->delete();
+
+            return true;
+        }
+
         if ($pivot->pivot->signature_image_path) {
             Storage::disk('public')->delete($pivot->pivot->signature_image_path);
         }

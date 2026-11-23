@@ -25,7 +25,7 @@
                 <h3 class="text-lg font-bold text-gray-900">Buat Agenda Baru</h3>
                 <p class="text-sm text-gray-400 mt-0.5">Pilih tipe agenda terlebih dahulu, lalu lengkapi form sesuai kebutuhan.</p>
             </div>
-            <div class="p-8" x-data="{ type: '{{ $defaultType }}', presenterCount: {{ $initialPresenterCount }} }">
+            <div class="p-8" x-data="{ type: '{{ $defaultType }}', presenterCount: {{ $initialPresenterCount }}, scope: '{{ old('scope', 'internal') }}', recipients: @js(old('letter_recipients', '')) }" @searchable-select-change="if ($event.detail.name === 'member_ids[]' && Array.isArray($event.detail.value) && $event.detail.value.length) { recipients = $event.detail.label; }">
                 <form action="{{ route('admin.agendas.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
                     @csrf
 
@@ -246,6 +246,42 @@
                             </div>
                         </div>
 
+                        <div x-show="type === 'rapat'" x-transition class="pb-4 border-b border-primary-500">
+                            <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                Lingkup Rapat
+                            </h4>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="scope" value="internal" x-model="scope" @checked(old('scope', 'internal') === 'internal') class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" />
+                                    <span class="text-sm font-medium text-gray-700">Rapat Internal</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="scope" value="external" x-model="scope" @checked(old('scope') === 'external') class="w-4 h-4 text-primary border-gray-300 focus:ring-primary" />
+                                    <span class="text-sm font-medium text-gray-700">Rapat Eksternal</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">Rapat eksternal hanya tampil di domain publik eksternal; rapat internal tampil di domain publik internal. Default: internal.</p>
+                        </div>
+
+                        <div x-show="type === 'rapat'" x-transition class="pb-4 border-b border-primary-500">
+                            <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                Anggota Rapat
+                            </h4>
+                            <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-4">
+                                <x-searchable-select
+                                    name="member_ids[]"
+                                    multiple
+                                    :selected-ids="$memberIds"
+                                    search-url="{{ route('admin.employees.search') }}"
+                                    placeholder="Cari anggota rapat (user, jabatan, atau posisi)..."
+                                />
+                                <p class="text-xs text-gray-500 mt-2">Hanya anggota yang dipilih yang dapat menandatangani kehadiran. Roster kosong berarti semua pegawai dapat absen.</p>
+                                @error('member_ids') <p class="text-rose-500 text-xs font-medium mt-2">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
                         <!--section 4-->
                         <div class="pb-4 border-b border-primary-500">
                             <h4 class="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -293,7 +329,7 @@
                             <template x-if="type === 'rapat'">
                                 <div class="mt-4">
                                     <label for="letter_recipients" class="block text-sm font-semibold text-gray-700 mb-2">Daftar Penerima (Kepada Yth.)</label>
-                                    <textarea name="letter_recipients" id="letter_recipients" rows="6" placeholder="Satu penerima per baris, cth.&#10;Direktur Rumah Sakit&#10;Manager Keperawatan" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none">{{ old('letter_recipients', '') }}</textarea>
+                                    <textarea name="letter_recipients" id="letter_recipients" rows="6" x-model="recipients" placeholder="Satu penerima per baris, cth.&#10;Direktur Rumah Sakit&#10;Manager Keperawatan" class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none"></textarea>
                                     <p class="text-xs text-gray-400 mt-1">Satu penerima per baris. Boleh dikosongkan.</p>
                                     @error('letter_recipients') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
                                 </div>

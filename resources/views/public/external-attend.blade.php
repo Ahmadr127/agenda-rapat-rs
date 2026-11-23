@@ -14,7 +14,7 @@
 </head>
 
 <body class="bg-slate-100 min-h-screen font-sans text-slate-800">
-    <div class="pb-10">
+    <div class="pb-10" x-data="externalAttendApp()" x-init="load(); initPad()">
         <x-agenda-header :agenda="$agenda">
             <x-slot:actions>
                 <a href="{{ route('home') }}"
@@ -34,35 +34,140 @@
             <section class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="px-5 md:px-6 pt-5 pb-4 border-b border-slate-100">
                     <h2 class="text-sm md:text-base font-extrabold text-slate-900">Tanda Tangan Tamu Eksternal</h2>
-                    <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5">Isi nama, organisasi (opsional), dan tanda tangan.</p>
+                    <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5">Isi nama, organisasi (opsional), lalu bubuhkan tanda tangan.</p>
                 </div>
 
-                <form method="POST" action="{{ route('agenda.external-attend.store', $agenda) }}" enctype="multipart/form-data" class="px-5 md:px-6 py-6 space-y-4">
-                    @csrf
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Nama</label>
-                        <input type="text" name="name" required value="{{ old('name') }}"
-                            class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" />
-                        @error('name') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+                <div class="px-5 md:px-6 py-6 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Nama</label>
+                            <input type="text" x-model="form.name" required
+                                class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Organisasi (opsional)</label>
+                            <input type="text" x-model="form.organization"
+                                class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" />
+                        </div>
                     </div>
+
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Organisasi / Instansi (opsional)</label>
-                        <input type="text" name="organization" value="{{ old('organization') }}"
-                            class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 placeholder-gray-400 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none" />
+                        <p class="text-[11px] md:text-xs text-slate-400 font-medium mb-2">Bubuhkan tanda tangan pada kolom di bawah ini</p>
+                        <div class="border-2 border-dashed border-slate-200 rounded-2xl mb-3 bg-slate-50 overflow-hidden focus-within:border-primary/40 transition-colors">
+                            <canvas id="ext-signature-canvas" class="w-full bg-white" style="height: 200px; touch-action: none;"></canvas>
+                        </div>
+                        <div class="flex gap-2.5">
+                            <button type="button" @click="clearPad()"
+                                class="flex-1 px-4 py-3 border border-slate-200 text-slate-600 text-xs md:text-sm font-bold rounded-2xl hover:bg-slate-50 transition active:scale-[0.98]">
+                                Hapus
+                            </button>
+                            <button type="button" @click="submit()" :disabled="submitting"
+                                class="flex-[2] inline-flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white text-xs md:text-sm font-extrabold rounded-2xl hover:bg-primary-700 shadow-lg shadow-primary/25 transition disabled:opacity-50 active:scale-[0.98]">
+                                <svg x-show="submitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                <span x-show="!submitting">Simpan Absensi</span>
+                                <span x-show="submitting">Menyimpan...</span>
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Tanda Tangan (gambar)</label>
-                        <input type="file" name="signature" accept="image/*" required
-                            class="block w-full px-4 py-3 rounded-2xl border border-gray-200 bg-gray-50/50 text-sm text-gray-900 transition duration-200 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                        @error('signature') <p class="text-rose-500 text-xs font-medium mt-1.5">{{ $message }}</p> @enderror
+
+                    <div x-show="showToast" x-transition x-cloak
+                        class="fixed top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white pl-4 pr-5 py-3 rounded-2xl shadow-xl z-50 text-xs md:text-sm font-bold flex items-center gap-2.5 max-w-[calc(100vw-2rem)]">
+                        <span x-text="toastMessage">Tanda tangan berhasil disimpan!</span>
                     </div>
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-700 transition-all">
-                        Simpan Tanda Tangan
-                    </button>
-                </form>
+                    <div x-show="showError" x-transition x-cloak
+                        class="fixed top-4 left-1/2 -translate-x-1/2 bg-rose-500 text-white pl-4 pr-5 py-3 rounded-2xl shadow-xl z-50 text-xs md:text-sm font-bold flex items-center gap-2.5 max-w-[calc(100vw-2rem)]">
+                        <span x-text="errorMessage"></span>
+                    </div>
+                </div>
             </section>
         </div>
     </div>
+
+    <script>
+        function externalAttendApp() {
+            return {
+                members: [],
+                saving: false,
+                submitting: false,
+                showToast: false,
+                toastMessage: '',
+                showError: false,
+                errorMessage: '',
+                form: { name: '', organization: '' },
+                signaturePad: null,
+
+                initPad() {
+                    this.$nextTick(() => {
+                        const canvas = document.getElementById('ext-signature-canvas');
+                        if (!canvas || !window.SignaturePad) return;
+                        const rect = canvas.getBoundingClientRect();
+                        canvas.width = rect.width || canvas.parentElement.offsetWidth;
+                        canvas.height = 200;
+                        this.signaturePad = new window.SignaturePad(canvas, {
+                            backgroundColor: 'rgb(255,255,255)',
+                            penColor: 'rgb(0,0,0)',
+                        });
+                    });
+                },
+
+                clearPad() {
+                    if (this.signaturePad) this.signaturePad.clear();
+                },
+
+                async load() {
+                    try {
+                        const { data } = await axios.get('{{ route('agenda.external-attend.index', $agenda) }}', {
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        this.members = data.items || [];
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+
+                async submit() {
+                    if (!this.form.name.trim()) {
+                        this.errorMessage = 'Nama wajib diisi.';
+                        this.showError = true;
+                        setTimeout(() => this.showError = false, 3000);
+                        return;
+                    }
+                    if (!this.signaturePad || this.signaturePad.isEmpty()) {
+                        this.errorMessage = 'Tanda tangan wajib diisi.';
+                        this.showError = true;
+                        setTimeout(() => this.showError = false, 3000);
+                        return;
+                    }
+                    this.submitting = true;
+                    try {
+                        const blob = await (await fetch(this.signaturePad.toDataURL('image/png'))).blob();
+                        const fd = new FormData();
+                        fd.append('name', this.form.name);
+                        if (this.form.organization) fd.append('organization', this.form.organization);
+                        fd.append('signature', blob, 'signature.png');
+
+                        const { data } = await axios.post('{{ route('agenda.external-attend.store', $agenda) }}', fd, {
+                            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                        });
+
+                        this.members.unshift(data.item);
+                        this.form = { name: '', organization: '' };
+                        this.clearPad();
+                        this.toastMessage = data.message || 'Tanda tangan berhasil disimpan.';
+                        this.showToast = true;
+                        setTimeout(() => this.showToast = false, 3000);
+                    } catch (e) {
+                        this.errorMessage = 'Gagal menyimpan tanda tangan.';
+                        this.showError = true;
+                        setTimeout(() => this.showError = false, 3000);
+                        console.error(e);
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+            };
+        }
+    </script>
 </body>
 
 </html>

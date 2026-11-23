@@ -32,6 +32,7 @@
                     $showTypeBadge = ['rapat' => 'bg-blue-400/25 text-blue-50', 'diklat' => 'bg-violet-400/25 text-violet-50', 'pelatihan' => 'bg-amber-400/25 text-amber-50'][$agenda->type] ?? 'bg-white/15 text-white';
                 @endphp
                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] md:text-[11px] font-extrabold uppercase tracking-wide {{ $showTypeBadge }}">{{ ucfirst($agenda->type) }}</span>
+               
             </div>
             <h1 class="text-base md:text-xl font-extrabold text-white leading-snug tracking-tight">{{ $agenda->title }}</h1>
             <dl class="mt-3.5 grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2.5 text-[11px] md:text-xs">
@@ -127,16 +128,28 @@
             <div x-show="currentStep === 'attendance'" class="space-y-5">
                 {{-- Search card --}}
                 <section class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div class="px-5 md:px-6 pt-5 pb-4 border-b border-slate-100 flex items-center gap-3.5">
-                        <span class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                            </svg>
-                        </span>
-                        <div class="min-w-0">
+                    <div class="px-5 md:px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between gap-3.5">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                            </span>
+                            <div class="min-w-0 text-left">
                             <h2 class="text-sm md:text-base font-extrabold text-slate-900">Absen Kehadiran</h2>
                             <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5">Cari nama Anda, lalu bubuhkan tanda tangan</p>
                         </div>
+                        </div>
+                        
+                        <div>
+                            <a href="{{ route('agenda.external-attend.index', $agenda) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs md:text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary-700 transition-all active:scale-95">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0v.75H4.5v-.75z" />
+                                </svg>
+                                Absensi Tamu Eksternal
+                            </a>
+                        </div>
+                        
                     </div>
                     <div class="p-5 md:p-6">
                         <div class="relative">
@@ -265,7 +278,48 @@
                         <p class="text-slate-400 text-[11px] md:text-xs mt-1">Gunakan pencarian di atas untuk melakukan absensi</p>
                     </div>
                 </section>
+                 <section class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="px-5 md:px-6 pt-5 pb-4 border-b border-slate-100">
+                    <h2 class="text-sm md:text-base font-extrabold text-slate-900">Tamu Terdaftar</h2>
+                    <p class="text-[11px] md:text-xs text-slate-400 font-medium mt-0.5" x-text="members.length + ' tamu'"></p>
+                </div>
+                <div class="px-5 md:px-6 py-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-primary-700 text-white">
+                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider w-10">No</th>
+                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Nama</th>
+                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Organisasi</th>
+                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Tanda Tangan</th>
+                                    <th class="px-4 py-3 text-[10px] font-semibold uppercase tracking-wider">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="(m, idx) in members" :key="m.id">
+                                    <tr>
+                                        <td class="px-4 py-3 text-sm text-slate-400" x-text="idx + 1"></td>
+                                        <td class="px-4 py-3 text-sm font-semibold text-slate-900" x-text="m.name"></td>
+                                        <td class="px-4 py-3 text-sm text-slate-600" x-text="m.organization || '—'"></td>
+                                        <td class="px-4 py-3">
+                                            <template x-if="m.signature_url">
+                                                <img :src="m.signature_url" alt="TTD" class="h-10 rounded border border-slate-200" />
+                                            </template>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap" x-text="m.created_at || '—'"></td>
+                                    </tr>
+                                </template>
+                                <tr x-show="members.length === 0">
+                                    <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-400">Belum ada tamu terdaftar.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
             </div>
+
+            
 
             {{-- ===== PRETEST STEP ===== --}}
             <div x-show="currentStep === 'pretest'" x-cloak class="space-y-5">
@@ -408,6 +462,8 @@
             </div>
         </div>
 
+        
+
         {{-- Success Toast --}}
         <div x-show="showToast" x-transition x-cloak
             class="fixed top-4 left-1/2 -translate-x-1/2 bg-emerald-600 text-white pl-4 pr-5 py-3 rounded-2xl shadow-xl z-50 text-xs md:text-sm font-bold flex items-center gap-2.5 max-w-[calc(100vw-2rem)]">
@@ -417,6 +473,7 @@
             </svg>
             <span x-text="toastMessage">Absensi berhasil disimpan!</span>
         </div>
+
 
         {{-- Error Toast --}}
         <div x-show="showError" x-transition x-cloak

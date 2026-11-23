@@ -125,6 +125,22 @@ class AgendaExternalMemberController extends Controller
     {
         abort_unless($agenda->type === 'rapat', 404);
 
+        if (request()->wantsJson()) {
+            $members = $agenda->externalMembers()->latest()->get();
+
+            return response()->json([
+                'items' => $members->map(fn (AgendaExternalMember $m) => [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                    'organization' => $m->organization,
+                    'signature_url' => $m->signature_image_path
+                        ? Storage::disk('public')->url($m->signature_image_path)
+                        : null,
+                    'created_at' => $m->created_at?->format('H:i'),
+                ])->values(),
+            ]);
+        }
+
         return view('public.external-attend', compact('agenda'));
     }
 
